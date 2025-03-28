@@ -1,0 +1,252 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5779563836940523993
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8676140227093978743}
+  - component: {fileID: 5503604661988549784}
+  - component: {fileID: 8696534752800494806}
+  - component: {fileID: 5412994323850142938}
+  - component: {fileID: 9107380257745347817}
+  - component: {fileID: 6315677057921933760}
+  - component: {fileID: 7538401423399837617}
+  - component: {fileID: 2667843682740206650}
+  - component: {fileID: 1829361451180887659}
+  - component: {fileID: 6481310831236115935}
+  - component: {fileID: 6088633574134622299}
+  - component: {fileID: 4686411525236556578}
+  m_Layer: 0
+  m_Name: NPC
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8676140227093978743
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5779563836940523993}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5503604661988549784
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5779563836940523993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58bac91ee01242d48b7b50d4b92c5f6c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  identity: {fileID: 5412994323850142938}
+  personality: {fileID: 9107380257745347817}
+  sexuality: {fileID: 6315677057921933760}
+  memorySystem: {fileID: 7538401423399837617}
+  relationshipSystem: {fileID: 2667843682740206650}
+  needsSystem: {fileID: 6481310831236115935}
+  emotionSystem: {fileID: 6088633574134622299}
+--- !u!114 &8696534752800494806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5779563836940523993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca655d60ac8b3944795694dde668f224, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  identity: {fileID: 5412994323850142938}
+  personality: {fileID: 9107380257745347817}
+  sexuality: {fileID: 6315677057921933760}
+  memorySystem: {fileID: 7538401423399837617}
+  relationshipSystem: {fileID: 2667843682740206650}
+  perceptionSystem: {fileID: 1829361451180887659}
+  needsSystem: {fileID: 6481310831236115935}
+  emotionSystem: {fileID: 6088633574134622299}
+  decisionMaker: {fileID: 4686411525236556578}
+--- !u!114 &5412994323850142938
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5779563836940523993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9c0246f00368524aa6c6302eb7cb413, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  firstName: 
+  lastName: 
+  npcName: 
+  age: 0
+  gender: 0
+  minAge: 18
+  maxAge: 80
+  parents: []
+  siblings: []
+  children: []
+  spouse: {fileID: 0}
+--- !u!114 &9107380257745347817
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5779563836940523993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10c803dc4d02ad241af3d9506b279dc0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  defaultHappiness: 0.5
+  defaultPassion: 0.5
+  defaultConfidence: 0.5
+  conceptOpinions:
+  - conceptName: PropertyOwnership
+    category: 0
+    intensity: 0
+    moralJudgement: 0
+    description: Views on owning things
+  tangibleInterests: []
+  tangibleFears: []
+  opinionsDatabase: {fileID: 11400000, guid: ce119a55d579f874baa1f5a744a07143, type: 2}
+--- !u!114 &6315677057921933760
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5779563836940523993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 945c7d2217004eb4cbf3b085edbc4da3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  masculinity: 0
+  visualPresentation: 0
+  attractionToMasculine: 0
+  attractionToFeminine: 0
+--- !u!114 &7538401423399837617
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5779563836940523993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6eb4351a4b2c19f4595630e9c7d979ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  memories: []
+--- !u!114 &2667843682740206650
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5779563836940523993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49ec0d2e75e0e104b963bef830a7d2dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  opinionWeight: 0.7
+  sexualWeight: 0.3
+  relationships: []
+--- !u!114 &1829361451180887659
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5779563836940523993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85506b97b26ee5149829f89479160b0c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  viewDistance: 15
+  fieldOfView: 90
+  visionMask:
+    serializedVersion: 2
+    m_Bits: 0
+  sightStrength: 1
+  hearingRadius: 20
+  audioMask:
+    serializedVersion: 2
+    m_Bits: 0
+  hearingStrength: 1
+  visibleObjects: []
+  audibleObjects: []
+--- !u!114 &6481310831236115935
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5779563836940523993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7ff7763d489658429970af9dc2097ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  needs:
+  - needName: Hunger
+    currentValue: 0
+    rateOfIncrease: 0
+  - needName: Energy
+    currentValue: 0
+    rateOfIncrease: 0
+  - needName: Stimulation
+    currentValue: 0
+    rateOfIncrease: 0
+--- !u!114 &6088633574134622299
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5779563836940523993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ca2cc5039bcbfa47a9dd1261dc2bfe9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  happiness: 0
+  passion: 0
+  confidence: 0
+  smoothTime: 0.5
+  disposition: 0
+  currentState: 0
+--- !u!114 &4686411525236556578
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5779563836940523993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6dcc14be119875a43b3d0e73ea964f84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
