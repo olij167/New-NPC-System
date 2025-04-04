@@ -21,6 +21,10 @@ public class ConceptOpinion
     [Tooltip("Additional description or context for this opinion")]
     [TextArea]
     public string description;
+
+    [Header("Ideological Alignment")]
+    [Tooltip("The ideal ideology that aligns with this opinion. NPCs with similar ideologies are more likely to agree with this opinion.")]
+    public Ideology requiredIdeology;
 }
 
 public enum AttributeCategory

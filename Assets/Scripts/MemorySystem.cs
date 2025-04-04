@@ -1,51 +1,82 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public enum GameEventType
+{
+    PlayerInteraction,
+    WitnessedAction,
+    EnvironmentalChange
+}
+
+[System.Serializable]
+public class GameEventData
+{
+    public GameEventType eventType;
+    public string description;
+    public float intensity;
+    public float timestamp;
+    public string targetId;
+
+    /// <summary>
+    /// Constructs a new GameEventData with an event type, description, intensity, and target ID.
+    /// </summary>
+    public GameEventData(GameEventType type, string desc, float intens, string target)
+    {
+        eventType = type;
+        description = desc;
+        intensity = intens;
+        timestamp = Time.time;
+        targetId = target;
+    }
+}
+
+[Serializable]
+public class Memory
+{
+    public GameEventData eventData;
+    public float timeRecorded;
+    public float significance;
+
+    public Memory(GameEventData eventData, float significance)
+    {
+        this.eventData = eventData;
+        this.significance = significance;
+        timeRecorded = Time.time;
+    }
+}
+
 public class MemorySystem : MonoBehaviour
 {
-    [System.Serializable]
-    public class Memory
-    {
-        [Tooltip("The event data recorded as a memory.")]
-        public GameEventData eventData;
-        [Tooltip("The time the event was recorded.")]
-        public float timeRecorded;
-        [Tooltip("A multiplier that represents how significant this event was for the NPC.")]
-        public float significance;
-
-        public Memory(GameEventData eventData, float significance)
-        {
-            this.eventData = eventData;
-            this.significance = significance;
-            this.timeRecorded = Time.time;
-        }
-    }
-
-    [Header("Memory Log")]
     public List<Memory> memories = new List<Memory>();
 
-    /// <summary>
-    /// Record a new memory with an associated significance.
-    /// </summary>
     public void RecordMemory(GameEventData eventData, float significance = 1.0f)
     {
-        memories.Add(new Memory(eventData, significance));
+        Memory newMemory = new Memory(eventData, significance);
+        memories.Add(newMemory);
     }
 
-    /// <summary>
-    /// Optionally remove memories older than a specified lifetime.
-    /// </summary>
     public void DecayMemories(float memoryLifetime)
     {
         memories.RemoveAll(memory => (Time.time - memory.timeRecorded) > memoryLifetime);
     }
 
-    /// <summary>
-    /// Retrieve all memories that match a custom predicate.
-    /// </summary>
-    public List<Memory> GetMemories(System.Func<Memory, bool> predicate)
+    // Returns a modifier for an action based on recent memories.
+    // Placeholder logic: sums contributions from memories that mention the action name,
+    // decayed exponentially over time.
+    public float GetMemoryModifierForAction(string actionName)
     {
-        // Wrap the Func in a lambda that matches System.Predicate<Memory>
-        return memories.FindAll(x => predicate(x));
+        float modifier = 0f;
+        foreach (Memory memory in memories)
+        {
+            if (!string.IsNullOrEmpty(memory.eventData.description) && memory.eventData.description.Contains(actionName))
+            {
+                float elapsed = Time.time - memory.timeRecorded;
+                float decay = Mathf.Exp(-elapsed); // Exponential decay.
+                modifier += memory.significance * decay;
+            }
+        }
+        return modifier;
     }
 }

@@ -6,13 +6,9 @@ public enum Gender { Male, Female, Other }
 public class NPCIdentity : MonoBehaviour
 {
     [Header("Basic Identity")]
-    [Tooltip("First name assigned based on gender and NPCManager name lists.")]
     public string firstName;
-    [Tooltip("Last name assigned from NPCManager last names list.")]
     public string lastName;
-    [Tooltip("Full name: first name + last name.")]
     public string npcName;
-    [Tooltip("Randomly generated age.")]
     public int age;
     public Gender gender;
 
@@ -20,52 +16,80 @@ public class NPCIdentity : MonoBehaviour
     public int minAge = 18;
     public int maxAge = 70;
 
-    [Header("Family Relationships")]
-    public List<NPCIdentity> parents = new List<NPCIdentity>();
-    public List<NPCIdentity> siblings = new List<NPCIdentity>();
-    public List<NPCIdentity> children = new List<NPCIdentity>();
-    public NPCIdentity spouse;
+    // Family data is managed by NPCFamilyManager.
+    [HideInInspector]
+    public NPCFamilyManager familyManager;
+
+    void Awake()
+    {
+        // Ensure a family manager exists.
+        familyManager = GetComponent<NPCFamilyManager>();
+        if (familyManager == null)
+        {
+            familyManager = gameObject.AddComponent<NPCFamilyManager>();
+        }
+    }
 
     /// <summary>
-    /// Generates identity values (age, first name, last name) and combines them into npcName.
-    /// If lastName is already set (e.g. for family members), it is preserved.
+    /// Generates the NPC's identity. If parents are present in the family manager,
+    /// the last name is chosen as either one parent's last name or a hyphenated combination.
+    /// Otherwise, random names are selected from the NPCManager's name lists.
     /// </summary>
     public void GenerateIdentity()
     {
-        // Generate a random age.
-        age = Random.Range(minAge, maxAge + 1);
-
         if (NPCManager.Instance != null)
         {
-            // Choose first name based on gender.
-            switch (gender)
+            // Determine first name based on gender.
+            if (gender == Gender.Male)
             {
-                case Gender.Male:
-                    firstName = (NPCManager.Instance.maleNames.Count > 0) ?
-                        NPCManager.Instance.maleNames[Random.Range(0, NPCManager.Instance.maleNames.Count)] :
-                        "Unnamed";
-                    break;
-                case Gender.Female:
-                    firstName = (NPCManager.Instance.femaleNames.Count > 0) ?
-                        NPCManager.Instance.femaleNames[Random.Range(0, NPCManager.Instance.femaleNames.Count)] :
-                        "Unnamed";
-                    break;
-                default:
-                    if (NPCManager.Instance.otherNames.Count > 0)
-                        firstName = NPCManager.Instance.otherNames[Random.Range(0, NPCManager.Instance.otherNames.Count)];
-                    else
-                    {
-                        List<string> combinedNames = new List<string>();
-                        combinedNames.AddRange(NPCManager.Instance.maleNames);
-                        combinedNames.AddRange(NPCManager.Instance.femaleNames);
-                        firstName = (combinedNames.Count > 0) ?
-                            combinedNames[Random.Range(0, combinedNames.Count)] : "Unnamed";
-                    }
-                    break;
+                if (NPCManager.Instance.maleNames.Count > 0)
+                    firstName = NPCManager.Instance.maleNames[Random.Range(0, NPCManager.Instance.maleNames.Count)];
+                else
+                    firstName = "Male";
+            }
+            else if (gender == Gender.Female)
+            {
+                if (NPCManager.Instance.femaleNames.Count > 0)
+                    firstName = NPCManager.Instance.femaleNames[Random.Range(0, NPCManager.Instance.femaleNames.Count)];
+                else
+                    firstName = "Female";
+            }
+            else
+            {
+                List<string> combined = new List<string>();
+                combined.AddRange(NPCManager.Instance.maleNames);
+                combined.AddRange(NPCManager.Instance.femaleNames);
+                if (combined.Count > 0)
+                    firstName = combined[Random.Range(0, combined.Count)];
+                else
+                    firstName = "Other";
             }
 
-            // Generate a new last name only if one isn't already set.
-            if (string.IsNullOrEmpty(lastName))
+            // Determine last name.
+            if (familyManager != null && familyManager.parents != null && familyManager.parents.Count >= 1)
+            {
+                if (familyManager.parents.Count == 1)
+                {
+                    lastName = GetSingleLastName(familyManager.parents[0].lastName);
+                }
+                else
+                {
+                    // 50% chance: choose one parent's last name; 50% chance: hyphenate.
+                    if (Random.value < 0.5f)
+                    {
+                        int index = Random.Range(0, familyManager.parents.Count);
+                        lastName = GetSingleLastName(familyManager.parents[index].lastName);
+                    }
+                    else
+                    {
+                        // For hyphenation, select one part from each parent's last name.
+                        string parentALast = GetSingleLastName(familyManager.parents[0].lastName);
+                        string parentBLast = GetSingleLastName(familyManager.parents[1].lastName);
+                        lastName = parentALast + "-" + parentBLast;
+                    }
+                }
+            }
+            else
             {
                 if (NPCManager.Instance.lastNames.Count > 0)
                     lastName = NPCManager.Instance.lastNames[Random.Range(0, NPCManager.Instance.lastNames.Count)];
@@ -75,110 +99,24 @@ public class NPCIdentity : MonoBehaviour
         }
         else
         {
-            firstName = "NoFirstName";
-            lastName = "NoLastName";
+            firstName = "Default";
+            lastName = "Default";
         }
-
         npcName = firstName + " " + lastName;
+        age = Random.Range(minAge, maxAge + 1);
+        gameObject.name = npcName;
     }
 
-    // Family relationship helper methods.
-    public void AddParent(NPCIdentity parent)
+    private string GetSingleLastName(string originalLastName)
     {
-        if (!parents.Contains(parent))
+        if (string.IsNullOrEmpty(originalLastName))
+            return "NoLastName";
+        if (originalLastName.Contains("-"))
         {
-            parents.Add(parent);
-            parent.AddChild(this);
+            string[] parts = originalLastName.Split('-');
+            int index = Random.Range(0, parts.Length);
+            return parts[index];
         }
-    }
-
-    public void AddChild(NPCIdentity child)
-    {
-        if (!children.Contains(child))
-        {
-            children.Add(child);
-            child.AddParent(this);
-        }
-    }
-
-    public void AddSibling(NPCIdentity sibling)
-    {
-        if (!siblings.Contains(sibling) && sibling != this)
-        {
-            siblings.Add(sibling);
-            if (!sibling.siblings.Contains(this))
-                sibling.siblings.Add(this);
-        }
-    }
-
-    public void SetSpouse(NPCIdentity partner)
-    {
-        spouse = partner;
-        partner.spouse = this;
-        // Share the last name between spouses.
-        if (string.IsNullOrEmpty(partner.lastName))
-        {
-            partner.lastName = this.lastName;
-            partner.npcName = partner.firstName + " " + partner.lastName;
-        }
-        else if (string.IsNullOrEmpty(this.lastName))
-        {
-            this.lastName = partner.lastName;
-            this.npcName = firstName + " " + lastName;
-        }
-        else
-        {
-            // Optionally enforce one last name; here we choose partner's.
-            this.lastName = partner.lastName;
-            npcName = firstName + " " + lastName;
-        }
-    }
-
-    /// <summary>
-    /// Recursively collects all ancestors of this NPC.
-    /// </summary>
-    public HashSet<NPCIdentity> GetAllAncestors()
-    {
-        HashSet<NPCIdentity> ancestors = new HashSet<NPCIdentity>();
-        foreach (var parent in parents)
-        {
-            if (parent != null)
-            {
-                ancestors.Add(parent);
-                foreach (var ancestor in parent.GetAllAncestors())
-                    ancestors.Add(ancestor);
-            }
-        }
-        return ancestors;
-    }
-
-    /// <summary>
-    /// Determines if this NPC is related to another by checking common ancestry.
-    /// </summary>
-    public bool IsRelatedTo(NPCIdentity other)
-    {
-        if (other == null) return false;
-        if (other == this) return true;
-
-        HashSet<NPCIdentity> myAncestors = GetAllAncestors();
-        HashSet<NPCIdentity> otherAncestors = other.GetAllAncestors();
-        if (myAncestors.Contains(other) || otherAncestors.Contains(this))
-            return true;
-
-        foreach (var ancestor in myAncestors)
-        {
-            if (otherAncestors.Contains(ancestor))
-                return true;
-        }
-        return false;
-    }
-
-    /// <summary>
-    /// Determines whether this NPC can date (form a romantic partnership with) another.
-    /// Returns false if they are related.
-    /// </summary>
-    public bool CanDate(NPCIdentity other)
-    {
-        return !IsRelatedTo(other);
+        return originalLastName;
     }
 }

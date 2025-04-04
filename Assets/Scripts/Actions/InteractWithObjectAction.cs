@@ -1,41 +1,38 @@
 using UnityEngine;
-using System.Collections.Generic;
 
+[CreateAssetMenu(fileName = "NewInteractWithObjectAction", menuName = "NPCAction/InteractWithObjectAction")]
 public class InteractWithObjectAction : NPCAction
 {
-    public InteractWithObjectAction() { actionName = "InteractWithObject"; }
-
     public override float GetUtility(NPC npc)
     {
-        // Get the NPC's perception system.
-        PerceptionSystem perception = npc.GetComponent<PerceptionSystem>();
+        PerceptionSystem perception = npc.perceptionSystem;
         if (perception == null)
             return 0f;
 
-        // Look through the prioritized list for an interactable object.
-        List<GameObject> sorted = perception.GetPrioritizedPerceivedObjects();
+        var sorted = perception.GetPrioritizedPerceivedObjects();
         foreach (GameObject obj in sorted)
         {
-            // Check if the object has an InteractableObject component.
             if (obj.GetComponent<InteractableObject>() != null)
             {
-                // Use the object's attention score as the base utility.
                 float score = perception.GetAttentionScore(obj);
-                // If the score exceeds a threshold, consider this action.
                 if (score > 1.0f)
+                {
+#if UNITY_EDITOR
+                    if (UnityEditor.Selection.activeGameObject == npc.gameObject)
+                        Debug.Log($"{npc.identity.npcName} found potential object interaction (score: {score:F2})");
+#endif
                     return score;
+                }
             }
         }
         return 0f;
     }
 
-    public override void Execute(NPC npc)
+    public override void ExecuteAction(NPC npc)
     {
-        PerceptionSystem perception = npc.GetComponent<PerceptionSystem>();
-        List<GameObject> sorted = perception.GetPrioritizedPerceivedObjects();
+        PerceptionSystem perception = npc.perceptionSystem;
+        var sorted = perception.GetPrioritizedPerceivedObjects();
         GameObject target = null;
-
-        // Find the first interactable object.
         foreach (GameObject obj in sorted)
         {
             if (obj.GetComponent<InteractableObject>() != null)
@@ -44,15 +41,14 @@ public class InteractWithObjectAction : NPCAction
                 break;
             }
         }
-
         if (target != null)
         {
-            Debug.Log(npc.name + " interacts with object: " + target.name);
-            // Call the object's interaction method.
+            Debug.Log($"{npc.identity.npcName} interacts with object: {target.name}");
             InteractableObject interactable = target.GetComponent<InteractableObject>();
             if (interactable != null)
             {
                 interactable.Interact(npc);
+                Debug.Log($"Interaction executed for object {target.name}");
             }
         }
     }

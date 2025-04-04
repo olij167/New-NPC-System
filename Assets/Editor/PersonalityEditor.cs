@@ -39,6 +39,25 @@ public class PersonalityEditor : Editor
         EditorGUILayout.LabelField("Custom Personality Editor", EditorStyles.boldLabel);
         EditorGUILayout.Space();
 
+        // ---------- Default Emotion Values ----------
+        EditorGUILayout.LabelField("Default Emotions", EditorStyles.boldLabel);
+        EditorGUI.indentLevel++;
+        personality.defaultHappiness = EditorGUILayout.Slider("Happiness", personality.defaultHappiness, 0f, 1f);
+        personality.defaultPassion = EditorGUILayout.Slider("Passion", personality.defaultPassion, 0f, 1f);
+        personality.defaultConfidence = EditorGUILayout.Slider("Confidence", personality.defaultConfidence, 0f, 1f);
+        EditorGUI.indentLevel--;
+        EditorGUILayout.Space();
+
+        // ---------- Ideological Profile ----------
+        EditorGUILayout.LabelField("Ideological Profile", EditorStyles.boldLabel);
+        EditorGUI.indentLevel++;
+        personality.ideology.freedom = EditorGUILayout.Slider("Freedom", personality.ideology.freedom, 0f, 1f);
+        personality.ideology.privacy = EditorGUILayout.Slider("Privacy", personality.ideology.privacy, 0f, 1f);
+        personality.ideology.authority = EditorGUILayout.Slider("Authority", personality.ideology.authority, 0f, 1f);
+        personality.ideology.equality = EditorGUILayout.Slider("Equality", personality.ideology.equality, 0f, 1f);
+        EditorGUI.indentLevel--;
+        EditorGUILayout.Space();
+
         // ---------- Opinions Database ----------
         EditorGUILayout.LabelField("Opinions Database", EditorStyles.boldLabel);
         SerializedProperty dbProp = serializedObject.FindProperty("opinionsDatabase");
@@ -91,6 +110,7 @@ public class PersonalityEditor : Editor
                             newConcept.intensity = potential.intensity;
                             newConcept.moralJudgement = potential.moralJudgement;
                             newConcept.description = potential.description;
+                            newConcept.requiredIdeology = potential.requiredIdeology; // Ideology requirement for the opinion.
                             personality.conceptOpinions.Add(newConcept);
                         }
                     }
@@ -146,6 +166,14 @@ public class PersonalityEditor : Editor
                     {
                         opinion.intensity = EditorGUILayout.Slider("Intensity", opinion.intensity, -1f, 1f);
                         opinion.moralJudgement = EditorGUILayout.Slider("Moral", opinion.moralJudgement, -1f, 1f);
+                        // Display required ideology information.
+                        EditorGUILayout.LabelField("Required Ideology:");
+                        EditorGUI.indentLevel++;
+                        EditorGUILayout.LabelField("Freedom: " + opinion.requiredIdeology.freedom.ToString("F2"));
+                        EditorGUILayout.LabelField("Privacy: " + opinion.requiredIdeology.privacy.ToString("F2"));
+                        EditorGUILayout.LabelField("Authority: " + opinion.requiredIdeology.authority.ToString("F2"));
+                        EditorGUILayout.LabelField("Equality: " + opinion.requiredIdeology.equality.ToString("F2"));
+                        EditorGUI.indentLevel--;
                     }
                     EditorGUILayout.EndVertical();
                     EditorGUILayout.Space();

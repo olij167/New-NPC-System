@@ -7,42 +7,53 @@ public class DecisionMaker : MonoBehaviour
     private PerceptionSystem perceptionSystem;
 
     [Header("Actions")]
-    [Tooltip("List of available actions for this NPC. If empty, default actions will be added.")]
     public List<NPCAction> actions = new List<NPCAction>();
+
+    // Decision persistence variables.
+    private NPCAction currentAction = null;
+    private float decisionTimer = 0f;
+
+    [Header("Decision Timing Settings")]
+    [Tooltip("Minimum duration (in seconds) an action should persist before re-evaluation.")]
+    public float decisionDuration = 2f;
+    [Tooltip("Maximum duration (in seconds) an action may persist before forcing a re-evaluation.")]
+    public float maxActionDuration = 5f;
+    [Tooltip("Minimum utility difference required to override the current action before max duration is reached.")]
+    public float overrideUtilityDifference = 0.5f;
 
     void Awake()
     {
         npc = GetComponent<NPC>();
         perceptionSystem = GetComponent<PerceptionSystem>();
 
-        // If no actions have been assigned via the Inspector, add default sample actions.
+        // Populate with default actions if none exist.
         if (actions.Count == 0)
         {
-            actions.Add(new IdleAction());
+            // Add the new need fulfillment action.
+            actions.Add(new NeedFulfillmentAction());
+            // Existing actions.
+            actions.Add(new ExploreAction());
             actions.Add(new PatrolAction());
             actions.Add(new FleeAction());
             actions.Add(new InteractWithObjectAction());
             actions.Add(new InteractWithNPCAction());
+            actions.Add(new SleepAction());
+            actions.Add(new EatAction());
+            actions.Add(new DrinkAction());
+            actions.Add(new WorkAction());
+            actions.Add(new WanderAction());
         }
     }
 
     void Update()
     {
-        // Retrieve the list of perceived objects from the integrated PerceptionSystem.
-        List<GameObject> prioritizedObjects = perceptionSystem.GetPrioritizedPerceivedObjects();
-        if (prioritizedObjects.Count > 0)
-        {
-            float topScore = perceptionSystem.GetCombinedPerceptionScore(prioritizedObjects[0]);
-            Debug.Log(npc.identity.npcName + " top combined perception score: " + topScore.ToString("F2"));
-        }
-
-        // Evaluate utility for each action based on the current state and perceptions.
         float bestUtility = -Mathf.Infinity;
         NPCAction bestAction = null;
+
+        // Evaluate utility for each available action.
         foreach (NPCAction action in actions)
         {
             float utility = action.GetUtility(npc);
-            // Debug.Log(npc.identity.npcName + " evaluated " + action.actionName + " with utility " + utility);
             if (utility > bestUtility)
             {
                 bestUtility = utility;
@@ -50,14 +61,32 @@ public class DecisionMaker : MonoBehaviour
             }
         }
 
-        // Execute the best action if its utility is positive.
-        if (bestAction != null && bestUtility > 0)
+        // Decision persistence logic.
+        if (currentAction == null || decisionTimer >= decisionDuration || decisionTimer >= maxActionDuration)
         {
-            bestAction.Execute(npc);
+            if (bestAction != null)
+            {
+                currentAction = bestAction;
+                decisionTimer = 0f;
+            }
         }
         else
         {
-            Debug.Log(npc.identity.npcName + " finds no urgent action, idling.");
+            float currentUtility = (currentAction != null) ? currentAction.GetUtility(npc) : 0f;
+            if (bestAction != null && (bestUtility - currentUtility) > overrideUtilityDifference)
+            {
+                currentAction = bestAction;
+                decisionTimer = 0f;
+            }
         }
+
+        // Execute the current action.
+        if (currentAction != null)
+        {
+            currentAction.ExecuteAction(npc);
+        }
+
+        decisionTimer += Time.deltaTime;
+        Debug.Log($"CurrentAction: {currentAction?.actionName ?? "None"}, Timer: {decisionTimer:F2}, BestUtility: {bestUtility:F2}");
     }
 }

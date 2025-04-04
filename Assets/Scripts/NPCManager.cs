@@ -1,219 +1,205 @@
 using System.Collections.Generic;
+using System.ComponentModel;
 using UnityEngine;
 
 public class NPCManager : MonoBehaviour
 {
     public static NPCManager Instance { get; private set; }
-    private List<NPC> npcs = new List<NPC>();
 
-    public delegate void NPCEvent(NPC npc, GameEventData eventData);
-    public event NPCEvent OnNPCEvent;
+
+    // New flag to control whether labels are drawn for every NPC or only for the selected one.
+    [Header("Debug Display Options")]
+    [Tooltip("If true, labels for NPC name and current action will be drawn for every NPC in the scene.")]
+    public bool drawLabelsForEveryNPC = false;    
+    [Tooltip("If true, labels for NPC name and current action will be drawn for every NPC in the scene.")]
+    public bool drawGizmosForEveryNPC = false;
+
+    [ReadOnly(true)] public List<NPC> npcs = new List<NPC>();
 
 
     [Header("NPC Name Lists")]
-    public List<string> maleNames = new List<string> {
-"Aaron", "Abel", "Abraham", "Adam", "Adrian", "Aiden", "Alan", "Albert", "Alec", "Alex",
-"Alexander", "Alfred", "Ali", "Allen", "Alvin", "Amir", "Andre", "Andrew", "Andy", "Angel",
-"Anthony", "Antonio", "Archie", "Ari", "Arthur", "Asher", "Austin", "Avery", "Axel", "Barry",
-"Beau", "Ben", "Benjamin", "Bennett", "Bernard", "Billy", "Blaine", "Blake", "Bo", "Bobby",
-"Brad", "Bradley", "Brady", "Brandon", "Brayden", "Brent", "Brett", "Brian", "Brock", "Brody",
-"Bruce", "Bruno", "Bryan", "Bryce", "Byron", "Caleb", "Calvin", "Camden", "Cameron", "Carl",
-"Carlos", "Carter", "Casey", "Cecil", "Cedric", "Chad", "Chance", "Chandler", "Charles", "Charlie",
-"Chase", "Chris", "Christian", "Christopher", "Clarence", "Clark", "Clay", "Clayton", "Cliff", "Clifford",
-"Clyde", "Cody", "Colby", "Cole", "Colin", "Collin", "Conner", "Connor", "Conrad", "Corey",
-"Cornelius", "Cory", "Craig", "Cris", "Cristian", "Curtis", "Cyrus", "Dakota", "Dale", "Dallas",
-"Damian", "Damien", "Damon", "Dan", "Daniel", "Danny", "Dante", "Darian", "Darius", "Darnell",
-"Darren", "Dave", "David", "Dean", "Declan", "Dennis", "Derek", "Desmond", "Devin", "Devon",
-"Dexter", "Diego", "Dominic", "Don", "Donald", "Donovan", "Doug", "Douglas", "Drake", "Drew",
-"Duncan", "Dustin", "Dwayne", "Dylan", "Earl", "Easton", "Eddie", "Eden", "Edgar", "Eduardo",
-"Edward", "Edwin", "Eli", "Elias", "Elijah", "Elmer", "Emerson", "Emiliano", "Emilio", "Emmanuel",
-"Emmett", "Enrique", "Eric", "Erick", "Erik", "Ernest", "Esteban", "Ethan", "Eugene", "Evan",
-"Everett", "Ezekiel", "Ezra", "Fabian", "Felix", "Fernando", "Finn", "Floyd", "Forrest", "Francis",
-"Francisco", "Frank", "Frankie", "Franklin", "Fred", "Freddie", "Frederick", "Gabriel", "Gage", "Gareth",
-"Gavin", "Gene", "George", "Gerald", "Gilbert", "Glen", "Glenn", "Gordon", "Grady", "Graham",
-"Grant", "Grayson", "Greg", "Gregory", "Griffin", "Guillermo", "Gus", "Guy", "Harley", "Harold",
-"Harrison", "Harry", "Harvey", "Hayden", "Heath", "Hector", "Henry", "Herbert", "Herman", "Hugh",
-"Hugo", "Hunter", "Ian", "Ibrahim", "Ignacio", "Isaac", "Isaiah", "Ismael", "Israel", "Ivan",
-"Izaiah", "Jace", "Jack", "Jackson", "Jacob", "Jaden", "Jake", "Jakob", "Jamal", "James",
-"Jameson", "Jamie", "Jared", "Jarrett", "Jarvis", "Jason", "Jasper", "Javier", "Jaxon", "Jay",
-"Jayce", "Jayden", "Jean", "Jeff", "Jefferson", "Jeffrey", "Jeremiah", "Jeremy", "Jermaine", "Jerry",
-"Jesse", "Jesus", "Jett", "Jimmy", "Joe", "Joel", "Joey", "John", "Johnny", "Jon",
-"Jonah", "Jonathan", "Jordan", "Jorge", "Jose", "Joseph", "Josh", "Joshua", "Josiah", "Jude",
-"Julian", "Julio", "Julius", "Justin", "Kade", "Kai", "Kaleb", "Kameron", "Kane", "Kareem",
-"Karl", "Karson", "Kasen", "Kayden", "Keaton", "Keith", "Kellan", "Kelly", "Kelvin", "Ken",
-"Kendall", "Kendrick", "Kenneth", "Kenny", "Kent", "Kerry", "Kevin", "Khalil", "Kian", "Kingston",
-"Kirby", "Kirk", "Kobe", "Kolby", "Kris", "Kristian", "Kurt", "Kurtis", "Kyle", "Kyler",
-"Kyleigh", "Lamar", "Lamont", "Lance", "Landen", "Landon", "Lane", "Larry", "Lawrence", "Layne",
-"Lee", "Leo", "Leon", "Leonard", "Leonardo", "Leroy", "Leslie", "Levi", "Liam", "Lincoln",
-"Lionel", "Logan", "Lonnie", "Louis", "Luca", "Lucas", "Lucian", "Luis", "Lukas", "Luke",
-"Luther", "Mack", "Malachi", "Malcolm", "Manuel", "Marc", "Marcel", "Marco", "Marcos", "Marcus",
-"Mario", "Mark", "Markus", "Marlon", "Marshall", "Martin", "Marvin", "Mason", "Mathew", "Matt",
-"Matthew", "Maurice", "Max", "Maximilian", "Maximus", "Maxwell", "Melvin", "Micah", "Michael", "Micheal",
-"Miguel", "Mike", "Miles", "Milton", "Mitch", "Mitchell", "Mohamed", "Mohammad", "Mohammed", "Monty",
-"Morgan", "Moses", "Muhammad", "Myles", "Myron", "Nash", "Nasir", "Nathan", "Nathaniel", "Neal",
-"Ned", "Neil", "Nelson", "Nestor", "Nicholas", "Nick", "Nickolas", "Nico", "Nigel", "Noah",
-"Noel", "Nolan", "Norman", "Oliver", "Omar", "Orlando", "Oscar", "Otis", "Owen", "Pablo",
-"Patrick", "Paul", "Pedro", "Percy", "Perry", "Pete", "Peter", "Phil", "Philip", "Phoenix",
-"Porter", "Preston", "Prince", "Quentin", "Quincy", "Quinn", "Rafael", "Ralph", "Ramiro", "Ramon",
-"Randall", "Randy", "Raphael", "Raul", "Ray", "Raymond", "Reed", "Reese", "Reginald", "Reid",
-"Remy", "Rene", "Reuben", "Rex", "Rey", "Reynaldo", "Rhett", "Ricardo", "Richard", "Rick",
-"Rickey", "Ricky", "Rico", "Riley", "Rob", "Robbie", "Robert", "Roberto", "Robin", "Rocco",
-"Rodney", "Rodolfo", "Roger", "Roland", "Roman", "Ron", "Ronald", "Ronnie", "Roosevelt", "Rory",
-"Ross", "Rowan", "Roy", "Royce", "Ruben", "Rudy", "Russell", "Ryan", "Ryder", "Ryker",
-"Sam", "Samir", "Sammy", "Samuel", "Santiago", "Santino", "Saul", "Sawyer", "Scott", "Sean",
-"Sebastian", "Sergio", "Seth", "Shane", "Shawn", "Sheldon", "Sidney", "Silas", "Simon", "Skylar",
-"Skyler", "Solomon", "Spencer", "Stan", "Stanley", "Stefan", "Stephen", "Steve", "Steven", "Stuart",
-"Sullivan", "Sylvester", "Taj", "Tanner", "Tate", "Taylor", "Ted", "Teddy", "Terence", "Terrance",
-"Terrence", "Terry", "Tevin", "Thaddeus", "Theo", "Theodore", "Thomas", "Tim", "Timothy", "Tobias",
-"Toby", "Todd", "Tom", "Tomas", "Tommy", "Tony", "Travis", "Trent", "Trenton", "Trevor",
-"Trey", "Tristan", "Troy", "Truman", "Tucker", "Ty", "Tyler", "Tyrell", "Tyrese", "Tyrone",
-"Tyson", "Ulises", "Ulysses", "Uriel", "Valentino", "Van", "Vance", "Vernon", "Victor", "Vince",
-"Vincent", "Virgil", "Wade", "Walker", "Wallace", "Walter", "Warren", "Waylon", "Wayne", "Wes",
-"Wesley", "Weston", "Wilbert", "Wilfred", "Will", "William", "Willie", "Wilson", "Winston", "Wyatt",
-"Xander", "Xavier", "Yahir", "Yosef", "Zachariah", "Zachary", "Zack", "Zane", "Zayden", "Zion"
-};
-    public List<string> femaleNames = new List<string> {
-"Aaliyah", "Abby", "Abigail", "Ada", "Adaline", "Addison", "Adelaide", "Adele", "Adeline", "Adriana",
-"Agnes", "Aileen", "Ainsley", "Aisha", "Alana", "Alani", "Alanna", "Alayna", "Alexa", "Alexandra",
-"Alexandria", "Alexia", "Alia", "Alice", "Alicia", "Alina", "Alisa", "Alison", "Alissa", "Allie",
-"Allison", "Ally", "Alma", "Alondra", "Alycia", "Alyson", "Alyssa", "Amara", "Amari", "Amber",
-"Amelia", "Amelie", "Amina", "Amira", "Amy", "Ana", "Anabel", "Anastasia", "Andrea", "Angela",
-"Angelica", "Angelina", "Angie", "Anika", "Anita", "Aniya", "Ann", "Anna", "Annabel", "Annabella",
-"Annabelle", "Annalise", "Anne", "Anneliese", "Annette", "Annie", "Annika", "Ansley", "Antonia", "April",
-"Ariana", "Arianna", "Ariel", "Ariella", "Arlene", "Arya", "Ashlee", "Ashley", "Ashlyn", "Aspen",
-"Audrey", "Aubree", "Aubrey", "Aubrielle", "Autumn", "Ava", "Avery", "Aviana", "Ayana", "Ayla",
-"Bailee", "Bailey", "Barbara", "Beatrice", "Beatrix", "Becca", "Becky", "Belinda", "Bella", "Bernadette",
-"Beryl", "Beth", "Bethany", "Betsy", "Betty", "Bianca", "Billie", "Blair", "Blaire", "Blake",
-"Blanca", "Bonnie", "Brandi", "Brandy", "Breanna", "Brenda", "Brenna", "Briana", "Brianna", "Brielle",
-"Bridget", "Bridgette", "Brittany", "Brooke", "Brooklyn", "Brynn", "Cadence", "Caitlin", "Caitlyn", "Calista",
-"Callie", "Camila", "Camilla", "Camille", "Candace", "Candice", "Cara", "Carina", "Carissa", "Carla",
-"Carlie", "Carmen", "Carol", "Carole", "Carolina", "Caroline", "Carolyn", "Carrie", "Casey", "Cassandra",
-"Cassidy", "Cassie", "Catalina", "Catherine", "Cathleen", "Cecelia", "Cecilia", "Celeste", "Celestine", "Celia",
-"Chanel", "Charity", "Charlene", "Charlotte", "Charmaine", "Chaya", "Chelsea", "Cher", "Cheryl", "Cheyenne",
-"Chloe", "Christa", "Christie", "Christina", "Christine", "Ciara", "Cindy", "Claire", "Clara", "Clarissa",
-"Claudia", "Colette", "Connie", "Cora", "Coral", "Coraline", "Cordelia", "Courtney", "Cristina", "Crystal",
-"Cynthia", "Daisy", "Dakota", "Dalia", "Dana", "Daniela", "Daniella", "Danielle", "Daphne", "Darlene",
-"Dawn", "Dayana", "Deborah", "Debra", "Delaney", "Delia", "Delilah", "Della", "Denise", "Desiree",
-"Diana", "Diane", "Dianna", "Dina", "Dixie", "Dominique", "Donna", "Dora", "Doreen", "Dorothy",
-"Drew", "Eden", "Edith", "Eileen", "Elaine", "Eleanor", "Elena", "Eliana", "Elinor", "Elisa",
-"Elisabeth", "Elise", "Eliza", "Elizabeth", "Ella", "Elle", "Ellen", "Elliana", "Ellie", "Elodie",
-"Eloise", "Elsa", "Elsie", "Elvira", "Elyse", "Ember", "Emelia", "Emelie", "Emely", "Emerald",
-"Emerson", "Emilia", "Emilie", "Emily", "Emma", "Emmalee", "Emmalyn", "Erica", "Erika", "Erin",
-"Esme", "Esmeralda", "Estella", "Estelle", "Esther", "Eva", "Evangeline", "Eve", "Evelyn", "Everleigh",
-"Evie", "Faith", "Fallon", "Farrah", "Fatima", "Faye", "Felicia", "Felicity", "Fern", "Finley",
-"Fiona", "Florence", "Frances", "Francesca", "Freya", "Gabby", "Gabriela", "Gabriella", "Gabrielle", "Gail",
-"Gemma", "Genesis", "Genevieve", "Georgia", "Georgina", "Gia", "Gillian", "Gina", "Giselle", "Gloria",
-"Grace", "Gracie", "Greta", "Gretchen", "Guadalupe", "Gwen", "Gwendolyn", "Hadley", "Hailee", "Hailey",
-"Haleigh", "Haley", "Halle", "Hallie", "Hannah", "Harley", "Harmony", "Harper", "Harriet", "Haven",
-"Hayden", "Hazel", "Heather", "Heaven", "Heidi", "Helen", "Helena", "Holly", "Hope", "Ila",
-"Ileana", "Iliana", "Imani", "India", "Indie", "Ines", "Ingrid", "Irene", "Iris", "Irma",
-"Isabel", "Isabela", "Isabella", "Isabelle", "Isis", "Isla", "Ivana", "Ivy", "Izabella", "Jackie",
-"Jaclyn", "Jacqueline", "Jada", "Jade", "Jaelyn", "Jamila", "Jamie", "Jana", "Jane", "Janelle",
-"Janessa", "Janet", "Janice", "Janie", "Jasmine", "Jasmin", "Jayda", "Jayden", "Jayla", "Jayleen",
-"Jaylen", "Jaylin", "Jazlyn", "Jazmin", "Jazmine", "Jean", "Jeanette", "Jeanne", "Jeannette", "Jemima",
-"Jen", "Jena", "Jenna", "Jennie", "Jennifer", "Jessica", "Jessie", "Jewel", "Jill", "Jillian",
-"Jo", "Joan", "Joann", "Joanna", "Joanne", "Jocelyn", "Jodi", "Jodie", "Jordan", "Jordyn",
-"Josefina", "Josephine", "Josie", "Joy", "Joyce", "Judith", "Judy", "Julia", "Juliana", "Julianna",
-"Julianne", "Julie", "Juliet", "Juliette", "Julissa", "June", "Justice", "Justina", "Justine", "Kacey",
-"Kaitlin", "Kaitlyn", "Kali", "Kalia", "Kallie", "Kamila", "Karina", "Karla", "Karlee", "Karly",
-"Karolina", "Karyn", "Kassandra", "Kassidy", "Kate", "Katelyn", "Katelynn", "Katerina", "Katharine", "Katherine",
-"Kathleen", "Kathryn", "Kathy", "Katie", "Katrina", "Katy", "Kay", "Kaya", "Kayla", "Kaylee",
-"Kayleigh", "Keira", "Kelsey", "Kendall", "Kendra", "Kenna", "Kenzie", "Keri", "Kerri", "Khloe",
-"Kiara", "Kiera", "Kim", "Kimber", "Kimberlee", "Kimberly", "Kinsley", "Kira", "Kirsten", "Kori",
-"Krista", "Kristen", "Kristin", "Kristina", "Kristy", "Krystal", "Kyla", "Kylee", "Kylie", "Kyra",
-"Lacey", "Laci", "Laila", "Laney", "Lara", "Laura", "Laurel", "Lauren", "Laurie", "Layla",
-"Lea", "Leah", "Leandra", "Leann", "Leanna", "Leanne", "Leda", "Leia", "Leila", "Lena",
-"Leslie", "Leticia", "Lexi", "Lexie", "Leyla", "Lia", "Liana", "Lianna", "Libby", "Lila",
-"Lilah", "Lilia", "Lilian", "Liliana", "Lilith", "Lillian", "Lillie", "Lilly", "Lily", "Lina",
-"Linda", "Lindsay", "Lindsey", "Lisa", "Lisette", "Livia", "Liz", "Liza", "Lizbeth", "Lizette",
-"Lizzie", "Logan", "Lola", "London", "Lora", "Lorelei", "Loren", "Lorena", "Lori", "Lorna",
-"Lorraine", "Louisa", "Louise", "Lucia", "Luciana", "Lucille", "Lucy", "Luisa", "Luna", "Lupita",
-"Luz", "Lydia", "Lyla", "Lynda", "Lynette", "Lynn", "Mabel", "Macey", "Mackenzie", "Macy",
-"Madalyn", "Maddison", "Madeline", "Madelyn", "Madison", "Mae", "Maeve", "Maggie", "Maia", "Maisie",
-"Maja", "Makayla", "Makenna", "Makenzie", "Malaya", "Malia", "Mallory", "Mandy", "Manuela", "Mara",
-"Marcia", "Margaret", "Margarita", "Margot", "Maria", "Mariah", "Mariam", "Mariana", "Marianna", "Maribel",
-"Marie", "Marilyn", "Marina", "Marion", "Marisa", "Marisol", "Marissa", "Maritza", "Marjorie", "Marla"
-};
-    public List<string> otherNames = new List<string>();
-    public List<string> lastNames = new List<string>
-    {"Abbott", "Acosta", "Adams", "Aguilar", "Ahmed", "Alexander", "Allen", "Allison", "Alvarez", "Anderson",
-"Andrews", "Armstrong", "Arnold", "Ashley", "Atkins", "Austin", "Avery", "Avila", "Ayala", "Bailey",
-"Baker", "Baldwin", "Ball", "Banks", "Barber", "Barker", "Barnes", "Barnett", "Barrett", "Barron",
-"Bass", "Bates", "Battle", "Bauer", "Baxter", "Beach", "Beard", "Beasley", "Beck", "Becker",
-"Bell", "Bender", "Benjamin", "Bennett", "Benson", "Bentley", "Berry", "Best", "Bird", "Bishop",
-"Black", "Blackburn", "Blackwell", "Blair", "Blake", "Blanchard", "Blankenship", "Blevins", "Bolton", "Bond",
-"Bonner", "Booker", "Boone", "Booth", "Bowen", "Bowers", "Bowman", "Boyd", "Boyer", "Boyle",
-"Bradford", "Bradley", "Bradshaw", "Brady", "Branch", "Bray", "Brennan", "Brewer", "Bridges", "Briggs",
-"Bright", "Britt", "Brock", "Brooks", "Brown", "Browning", "Bruce", "Bryan", "Bryant", "Buchanan",
-"Buck", "Buckley", "Bullock", "Burgess", "Burke", "Burks", "Burnett", "Burns", "Burt", "Burton",
-"Bush", "Butler", "Byers", "Byrd", "Caldwell", "Cadogan", "Calhoun", "Callahan", "Camacho", "Cameron",
-"Campbell", "Cannon", "Cantrell", "Cantu", "Cardenas", "Carey", "Carlson", "Carney", "Carpenter", "Carr",
-"Carrillo", "Carroll", "Carson", "Carter", "Carver", "Case", "Casey", "Cash", "Castaneda", "Castillo",
-"Castro", "Cervantes", "Chambers", "Chan", "Chandler", "Chang", "Chapman", "Charles", "Chase", "Chavez",
-"Chen", "Cherry", "Christensen", "Christian", "Church", "Clark", "Clarke", "Clay", "Clayton", "Clements",
-"Clemons", "Cleveland", "Cline", "Cobb", "Cochran", "Coffey", "Cohen", "Cole", "Coleman", "Collier",
-"Collins", "Colon", "Compton", "Conley", "Conner", "Conrad", "Contreras", "Cook", "Cooke", "Cooley",
-"Cooper", "Copeland", "Cortez", "Cote", "Cotton", "Cox", "Craft", "Craig", "Crane", "Crawford",
-"Crosby", "Cross", "Cruz", "Cummings", "Cunningham", "Curry", "Curtis", "Dale", "Dalton", "Daniel",
-"Daniels", "Daugherty", "Davenport", "David", "Davidson", "Davis", "Dawson", "Day", "Dean", "Decker",
-"Dejesus", "Delacruz", "Delaney", "Deleon", "Delgado", "Dennis", "Diaz", "Dickerson", "Dickson", "Dillon",
-"Dixon", "Dodson", "Dominguez", "Donaldson", "Donovan", "Dorsey", "Dotson", "Douglas", "Downs", "Doyle",
-"Drake", "Durham", "Dyer", "Eaton", "Edwards", "Elliott", "Ellis", "Ellison", "Emerson", "English",
-"Escobar", "Espinoza", "Estes", "Estrada", "Evans", "Everett", "Farley", "Farmer", "Farrell", "Faulkner",
-"Ferguson", "Fernandez", "Fields", "Figueroa", "Finley", "Fischer", "Fisher", "Fitzgerald", "Fleming", "Fletcher",
-"Flores", "Flynn", "Foley", "Forbes", "Ford", "Foreman", "Foster", "Fowler", "Fox", "Francis",
-"Franco", "Frank", "Franklin", "Franks", "Frazier", "Freeman", "French", "Frost", "Fry", "Frye",
-"Fuentes", "Fuller", "Fulton", "Gaines", "Gallagher", "Gallegos", "Galloway", "Gamble", "Garcia", "Gardner",
-"Garner", "Garrett", "Garrison", "Garza", "Gates", "Gay", "George", "Gibbs", "Gibson", "Gilbert",
-"Giles", "Gill", "Gillespie", "Gilliam", "Gilmore", "Glass", "Glenn", "Glover", "Golden", "Gomez",
-"Gonzales", "Gonzalez", "Good", "Goodman", "Goodwin", "Gordon", "Gould", "Graham", "Grant", "Graves",
-"Gray", "Green", "Greene", "Greer", "Gregory", "Griffin", "Griffith", "Grimes", "Gross", "Guerra",
-"Guerrero", "Guthrie", "Gutierrez", "Guy", "Guzman", "Hahn", "Hale", "Haley", "Hall", "Hamilton",
-"Hammond", "Hampton", "Hancock", "Haney", "Hansen", "Hanson", "Hardin", "Harding", "Hardy", "Harmon",
-"Harper", "Harrington", "Harris", "Harrison", "Hart", "Harvey", "Hatfield", "Hawkins", "Hayden", "Hayes",
-"Haynes", "Head", "Heath", "Hebert", "Henderson", "Hendricks", "Hendrix", "Henry", "Hensley", "Henson",
-"Herman", "Hernandez", "Herrera", "Herring", "Hess", "Hester", "Hewitt", "Hickman", "Hicks", "Higgins",
-"Hill", "Hines", "Hinton", "Hobbs", "Hodge", "Hodges", "Hoffman", "Hogan", "Holcomb", "Holden",
-"Holder", "Holland", "Holloway", "Holman", "Holmes", "Holt", "Hood", "Hooper", "Hoover", "Hopkins",
-"Hopper", "Horn", "Horne", "Horton", "House", "Houston", "Howard", "Howe", "Howell", "Hubbard",
-"Huber", "Hudson", "Huff", "Huffman", "Hughes", "Hull", "Hunt", "Hunter", "Hurley", "Hurst",
-"Hutchinson", "Hutton", "Hyde", "Ingram", "Irwin", "Isaacs", "Irving", "Ivey", "Jackson", "Jacobs",
-"Jacobson", "James", "Jarvis", "Jefferson", "Jeffery", "Jenkins", "Jenkinson", "Jennings", "Jensen", "Jimenez",
-"Johns", "Johnson", "Johnston", "Joiner", "Jones", "Jordan", "Joseph", "Joyce", "Joyner", "Juarez",
-"Justice", "Kane", "Kaufman", "Keith", "Keller", "Kelley", "Kelly", "Kemp", "Kennedy", "Kent",
-"Kerr", "Key", "Keys", "Kidd", "Kim", "King", "Kinney", "Kirby", "Kirk", "Kirkland",
-"Klein", "Kline", "Knapp", "Knight", "Knowles", "Knox", "Koch", "Kramer", "Krause", "Kraus",
-"Lamb", "Lambert", "Lancaster", "Landry", "Lane", "Lang", "Langley", "Lara", "Larsen", "Larson",
-"Lawrence", "Laws", "Lawson", "Le", "Leach", "Leblanc", "Lee", "Leon", "Leonard", "Lester",
-"Levine", "Levy", "Lewis", "Li", "Lindsay", "Lindsey", "Little", "Livingston", "Lloyd", "Logan",
-"Long", "Lopez", "Lott", "Love", "Lowe", "Lowery", "Lucas", "Luna", "Lynch", "Lynn",
-"Lyons", "Macias", "Mack", "Madden", "Maddox", "Maldonado", "Malone", "Mann", "Manning", "Marks",
-"Marquez", "Marsh", "Marshall", "Martin", "Martinez", "Mason", "Massey", "Mathews", "Mathis", "Matthews",
-"Maxwell", "May", "Mayer", "Maynard", "Mayo", "McBride", "McCall", "McCann", "McCarthy", "McCarty",
-"McClain", "McClure", "McConnell", "McCormick", "McCoy", "McCray", "McCullough", "McDaniel", "McDonald", "McDowell",
-"McFadden", "McFarland", "McGee", "McGowan", "McGuire", "McIntosh", "McKay", "McKee", "McKenzie", "McKinney",
-"McKnight", "McLaughlin", "McLean", "McLeod", "McMahon", "McMillan", "McNeil", "McPherson", "Meadows", "Medina",
-"Mejia"};
+   public  List<string> maleNames = new List<string> 
+   { // (Expanding each letter to have at least 50, preserving existing names) // A "Aaron", "Abel", "Abraham", "Abram", "Ace", "Adam", "Adan", "Aden", "Adrian", "Ahmad", "Ahmed", "Aidan", "Aiden", "Ainsley", "Alec", "Alejandro", "Alex", "Alexander", "Alfonso", "Alfred", "Ali", "Allan", "Allen", "Alonzo", "Alton", "Alvin", "Amari", "Ambrose", "Amir", "Anderson", "Andre", "Andres", "Andrew", "Andy", "Angel", "Angelo", "Anthony", "Antonio", "Apollo", "Archer", "Ares", "Ari", "Arjun", "Armando", "Arnold", "Arthur", "Arturo", "Asa", "Asher", "Ashton", "Atlas", "Atticus", "August", "Augustus", "Aurelian", "Austin", "Avery", "Axel", "Axton", "Aziel", "Abdullah", "Abe", "Abner", "Abu", "Achilles", "Adel", "Adler", "Adolfo", "Agustin", "Aiman", "Akeem", "Akira", "Alaric", "Alessandro", "Alistair", "Alois", "Amos", "Anas", "Andrei", "Ansel", "Anson", "Aram", "Arian", "Ariel", "Arman", "Arno", "Aryan", "Ashwin", "Athan", "Augustine", "Avi", "Avraham", "Axil", "Azim", "Azarius", "Armen", "Aydin", "Azriel", "Alp", "Axton", "Azad", "Ayo", "Aneurin", "Agam", // B "Bailey", "Barack", "Barrett", "Barry", "Beau", "Beck", "Beckett", "Ben", "Benedict", "Benjamin", "Benji", "Bennett", "Benny", "Benson", "Bernard", "Bert", "Billy", "Blaine", "Blake", "Bo", "Bobby", "Bodhi", "Boone", "Boston", "Bowen", "Braden", "Bradley", "Brad", "Brady", "Braeden", "Braxton", "Brayan", "Brayden", "Brendan", "Brent", "Brenton", "Brett", "Brian", "Briar", "Broderick", "Brock", "Brody", "Brooks", "Bruce", "Bruno", "Bryan", "Bryant", "Bryce", "Bryson", "Buster", "Byron", "Basil", "Bastian", "Baylen", "Baylor", "Bear", "Benicio", "Benton", "Berto", "Bjorn", "Blaise", "Blayze", "Booker", "Brando", "Branson", "Brant", "Braylon", "Brice", "Brighton", "Brixton", "Bronson", "Buck", "Buddy", "Burke", "Buzz", "Byrne", "Bolivar", "Bodrick", "Baldwin", "Bannon", "Bancroft", "Barnaby", "Bosco", "Bradwin", "Bromley", "Bryden", "Bartolo", "Briggs", "Bransby", // C "Cade", "Caden", "Cael", "Caiden", "Cain", "Cal", "Caleb", "Calvin", "Camden", "Cameron", "Camilo", "Carl", "Carlos", "Carlton", "Carmelo", "Carson", "Carter", "Case", "Casey", "Casen", "Cash", "Cason", "Cassius", "Castiel", "Cayden", "Cecil", "Cedric", "Chad", "Chance", "Chandler", "Charles", "Charlie", "Chase", "Chris", "Christian", "Christopher", "Clark", "Clay", "Clayton", "Cliff", "Clifford", "Clint", "Clinton", "Clyde", "Cody", "Colby", "Cole", "Colin", "Collin", "Colt", "Colten", "Colton", "Conner", "Connor", "Conrad", "Cooper", "Corbin", "Corey", "Craig", "Cristian", "Cruz", "Cullen", "Curtis", "Cyrus", "Cairo", "Caio", "Callahan", "Callum", "Camari", "Canaan", "Cannon", "Carlisle", "Carmine", "Casper", "Cassian", "Cato", "Cecilio", "Celestino", "Cesare", "Chaim", "Channing", "Chico", "Clarence", "Claude", "Clement", "Clovis", "Coleson", "Colson", "Constantine", "Cornelius", "Cortez", "Cory", "Cuthbert", "Cosmo", "Cristobal", "Cadmus", "Cadwell", "Cuthrell", "Cohen", "Corentin", "Colston", "Christo", // D "Daquan", "Dakota", "Dale", "Dallas", "Dalton", "Damari", "Damian", "Damien", "Damon", "Dan", "Dandre", "Dane", "Daniel", "Danny", "Dante", "Darian", "Dario", "Darius", "Darnell", "Darrel", "Darrell", "Darren", "Darwin", "Daryl", "Dave", "David", "Davin", "Davis", "Dean", "Declan", "Demetrius", "Dennis", "Derek", "Deshawn", "Desmond", "Devan", "Devin", "Devon", "Dexter", "Diego", "Dillon", "Dion", "Dominic", "Dominick", "Donald", "Donovan", "Dorian", "Douglas", "Drake", "Drew", "Duke", "Dustin", "Dwayne", "Dylan", "Daedalus", "Dagobert", "Damiano", "Damonique", "Dangelo", "Danyl", "Dariole", "Dartagnan", "Darwinus", "Dash", "Dayton", "Decker", "Delano", "Delbert", "Demian", "Denali", "Denver", "Derick", "Derrick", "Desiderio", "Dimitri", "Dinesh", "Dionisio", "Dirk", "Donato", "Doron", "Dukeon", "Durand", "Darrow", "Deontae", "Dwayne", "Daylen", "Daxton", "Dillard", "Donlan", // E "Ean", "Earl", "Easton", "Eddie", "Eden", "Edgar", "Edison", "Eduardo", "Edward", "Edwin", "Efrain", "Efren", "Elias", "Elian", "Elijah", "Eli", "Eliezer", "Eliseo", "Elliot", "Elliott", "Ellis", "Elmer", "Elon", "Elton", "Elvis", "Emerson", "Emery", "Emiliano", "Emilio", "Emir", "Emmanuel", "Emmet", "Emmett", "Enoch", "Enrique", "Enzo", "Ephraim", "Eric", "Erick", "Erik", "Ernest", "Ernesto", "Erwin", "Esteban", "Ethan", "Eugene", "Evan", "Everest", "Everett", "Ezekiel", "Ezra", "Eamon", "Earlson", "Eastwood", "Edgardo", "Eduard", "Efrim", "Egbert", "Egon", "Eldon", "Eleazar", "Eleodoro", "Elie", "Elisio", "Ellington", "Elrico", "Elwyn", "Emanuel", "Emeril", "Emerick", "Emile", "Emiliano", "Emlyn", "Ennis", "Eraldo", "Erling", "Ernestus", "Eros", "Esau", "Eston", "Etienne", "Ezequiel", "Ezer", "Ezekias", "Ezel", "Ezio", "Ezrin",
 
-    private void Awake()
+        "Fabian", "Felipe", "Felix", "Fernando", "Finley", "Finn", "Fisher", "Fletcher", "Floyd", "Ford", "Forrest", "Foster", "Francis", "Francisco", "Frank", "Frankie", "Franklin", "Fred", "Freddie", "Frederick", "Fritz", "Farhan", "Fahad", "Faisal", "Falcon", "Faro", "Farrell", "Fatih", "Faust", "Felton", "Fenton", "Fergus", "Fidel", "Finian", "Finnian", "Fionn", "Fitz", "Flavio", "Fleur", "Flint", "Florian", "Flynt", "Fordham", "Forester", "Fortunato", "Foy", "Francesco", "Franco", "Francois", "Franz", "Fraser", "Fray", "Fredrik", "Frey", "Friedrich", "Fulbright", "Fulton", "Fumio", "Fumito", "Fyodor", "Faiz",
+
+        "Gabe", "Gabriel", "Gael", "Gage", "Gale", "Gannon", "Gareth", "Garrett", "Garrison", "Garth", "Gary", "Gavin", "Gene", "Geoffrey", "George", "Gerald", "Gideon", "Gilbert", "Giovanni", "Glen", "Glenn", "Gonzalo", "Gordon", "Grady", "Graham", "Grant", "Grayson", "Greg", "Gregory", "Griffin", "Grover", "Guillermo", "Gunnar", "Gunner", "Gus", "Gustavo", "Guy", "Gaius", "Galileo", "Galo", "Garland", "Gaston", "Gavriel", "Giacomo", "Gibson", "Gianni", "Giles", "Giovanny", "Giuseppe", "Godfrey", "Godric", "Goldwin", "Goran", "Gottfried", "Govind", "Graeme", "Granville", "Gregor", "Guido", "Guillaume", "Gunther", "Gusmao",
+
+        "Hakeem", "Hank", "Hans", "Harley", "Harold", "Harrison", "Harry", "Harvey", "Hassan", "Hayden", "Heath", "Hector", "Hendrix", "Henry", "Herbert", "Herman", "Hiram", "Holden", "Horace", "Houston", "Howard", "Hugh", "Hugo", "Hunter", "Habib", "Hadley", "Haider", "Haig", "Hal", "Hamish", "Hanzo", "Harland", "Harmon", "Haroun", "Harper", "Hartley", "Haruko", "Hasan", "Haven", "Hayes", "Heinrich", "Helio", "Henrik", "Hercules", "Herschel", "Hershel", "Hikaru", "Hillard", "Hillel", "Hiram", "Holland", "Hopper", "Horatio", "Horus", "Huck", "Hudson", "Humphrey", "Hyatt", "Hyder", "Hyrum",
+
+        "Ian", "Ibrahim", "Iker", "Immanuel", "Indigo", "Indiana", "Inigo", "Irvin", "Irving", "Isaac", "Isaias", "Ishaan", "Ishmael", "Israel", "Issac", "Ivan", "Izaiah", "Iago", "Iakopa", "Idris", "Iestyn", "Ignacio", "Igor", "Ikaika", "Ilias", "Ilya", "Imad", "Iman", "Imari", "Imran", "Ioan", "Ion", "Ionel", "Ira", "Irvine", "Isaiah", "Ishan", "Isidro", "Ismail", "Istvan", "Itachi", "Itai", "Iven", "Ivor", "Izak", "Icarus", "Iustin", "Irvyn", "Iskander",
+
+        "Jace", "Jack", "Jackson", "Jacob", "Jaden", "Jadon", "Jaiden", "Jake", "Jakob", "Jalen", "Jamal", "James", "Jameson", "Jamie", "Jamir", "Jan", "Jared", "Jarrett", "Jarvis", "Jason", "Jasper", "Javier", "Jax", "Jaxon", "Jaxson", "Jay", "Jayce", "Jayden", "Jaylen", "Jayson", "Jean", "Jed", "Jeff", "Jefferson", "Jeffrey", "Jeremiah", "Jeremy", "Jericho", "Jermaine", "Jerome", "Jerry", "Jesse", "Jesus", "Jett", "Jim", "Jimmy", "Joan", "Joaquin", "Joe", "Joel", "Joey", "John", "Johnny", "Jon", "Jonah", "Jonas", "Jonathan", "Jordan", "Jorge", "Jose", "Joseph", "Josh", "Joshua", "Josiah", "Jovan", "Joziah", "Juan", "Judah", "Jude", "Julian", "Julio", "Julius", "Junior", "Justice", "Justin",
+
+        "Kade", "Kai", "Kaiden", "Kaleb", "Kameron", "Kane", "Kareem", "Karl", "Karson", "Kasen", "Kash", "Kason", "Kayden", "Keaton", "Keith", "Kellan", "Kelvin", "Ken", "Kendall", "Kendrick", "Kenneth", "Kenny", "Kent", "Kenzo", "Kerry", "Kevin", "Khalid", "Khalil", "Kian", "Kieran", "King", "Kingsley", "Kingston", "Kirk", "Kobe", "Kolby", "Kris", "Kristian", "Kurt", "Kurtis", "Kyan", "Kylan", "Kyle", "Kylen", "Kyler", "Kymani", "Kadir", "Kaimana", "Kajetan", "Kalil", "Kamal", "Karam", "Kato", "Kavi", "Keanu", "Keean", "Kenai", "Kerwin", "Kester", "Kianu", "Killian", "Klaus",
+
+        "Lamar", "Lamont", "Lance", "Landen", "Landon", "Lane", "Langston", "Larry", "Lawrence", "Layne", "Lee", "Legend", "Leif", "Leighton", "Leland", "Lennon", "Lennox", "Leo", "Leon", "Leonard", "Leonardo", "Leroy", "Levi", "Liam", "Lincoln", "Lionel", "Logan", "London", "Lorenzo", "Louis", "Luca", "Lucas", "Lucian", "Luciano", "Luis", "Luka", "Lukas", "Luke", "Luther", "Lachlan", "Ladd", "Lake", "Lalo", "Lamarion", "Lancelot", "Landry", "Langford", "Laramie", "Laszlo", "Laurel", "Laurence", "Leandro", "Ledger", "Leith", "Lemuel", "Leonid", "Leslie", "Lev", "Levon", "Linus", "Lisandro", "Livingston", "Lleyton", "Lorcan", "Lucero", "Lucius", "Ludwig", "Ludovic", "Lugh", "Lukael", "Lydon",
+
+        "Mac", "Madden", "Maddox", "Major", "Malachi", "Malakai", "Malcolm", "Malik", "Manuel", "Marc", "Marcel", "Marcelo", "Marco", "Marcos", "Marcus", "Mario", "Mark", "Markus", "Marlin", "Marlon", "Marshall", "Martin", "Marvin", "Mason", "Mateo", "Mathew", "Mathias", "Matt", "Matthew", "Maurice", "Maverick", "Max", "Maxim", "Maximilian", "Maximus", "Maxwell", "Melvin", "Memphis", "Micah", "Michael", "Micheal", "Miguel", "Mike", "Miles", "Milo", "Milton", "Misael", "Mitchell", "Mohamed", "Mohammad", "Mohammed", "Monty", "Morgan", "Moses", "Muhammad", "Murphy", "Myles", "Myron",
+
+        "Nash", "Nasir", "Nathan", "Nathanael", "Nathaniel", "Nehemiah", "Neil", "Nelson", "Nestor", "Nevin", "Nicholas", "Nick", "Nickolas", "Nico", "Nikolai", "Noah", "Noe", "Noel", "Nolan", "Norbert", "Norman", "Nova", "Napoleon", "Nasim", "Navid", "Navin", "Nayan", "Nazim", "Nazir", "Neal", "Ned", "Neel", "Nehemya", "Neville", "Newt", "Newton", "Niall", "Niccolo", "Nigel", "Nikhil", "Nils", "Nirav", "Nixon", "Noam", "Noeh", "Nolen", "Norwood", "Novael", "Nuriel", "Nygel",
+
+        "Oakley", "Ocean", "Odin", "Olen", "Oliver", "Omar", "Omari", "Orion", "Orlando", "Oscar", "Otis", "Otto", "Owen", "Ozzy", "Obadiah", "Octavian", "Octavio", "Odell", "Ogden", "Oleksandr", "Olivier", "Ollie", "Olson", "Olver", "Omario", "Oneil", "Onyx", "Opie", "Oran", "Orionis", "Orpheus", "Orvin", "Osiris", "Osman", "Oswald", "Othman", "Ottomar", "Ovid", "Ozias", "Oziel", "Obasi", "Obed", "Obelix", "Orae", "Orhan", "Orval", "Orvell", "Oxford",
+
+        "Pablo", "Parker", "Patrick", "Paul", "Pedro", "Percy", "Perry", "Pete", "Peter", "Philip", "Phoenix", "Pierce", "Porter", "Preston", "Prince", "Pacey", "Pacino", "Padraig", "Paisley", "Parke", "Pascal", "Pasquale", "Patton", "Pavel", "Paxton", "Payton", "Percival", "Pericles", "Perryon", "Philippe", "Phineas", "Phinneus", "Pierro", "Pio", "Pius", "Platini", "Pollux", "Powell", "Prentice", "Presleigh", "Presley", "Presston", "Prosper", "Prudencio", "Pryce", "Puck", "Putnam", "Pyotr", "Paladin", "Pharoah",
+
+        "Quentin", "Quincy", "Quinn", "Quinton", "Qadir", "Qasim", "Qasmi", "Qatari", "Qawi", "Qiao", "Qin", "Qiu", "Quadre", "Quaide", "Quaid", "Quame", "Quantavious", "Quashawn", "Quay", "Quebec", "Quevin", "Quigley", "Quill", "Quiller", "Quinby", "Quinlan", "Quinnell", "Quince", "Quintavion", "Quintero", "Quirino", "Quito", "Qusai", "Qayden", "Qamir", "Quantrell", "Qinxuan", "Qari", "Quirinius", "Qadeem", "Qurban", "Qasimov", "Qusay",
+
+        "Rafael", "Raheem", "Rahul", "Ralph", "Ramiro", "Ramon", "Randall", "Randy", "Raphael", "Raul", "Ray", "Rayden", "Raylan", "Raymond", "Reed", "Reese", "Reginald", "Reid", "Remington", "Remy", "Rene", "Reuben", "Rex", "Rey", "Reynaldo", "Rhett", "Rhys", "Ricardo", "Richard", "Rick", "Ricky", "Rico", "Ridge", "Riley", "Rob", "Robbie", "Robert", "Roberto", "Robin", "Rocco", "Rocky", "Rodney", "Rodolfo", "Rodrigo", "Roger", "Roland", "Romeo", "Ron", "Ronald", "Ronin", "Ronnie", "Roosevelt", "Rory", "Ross", "Rowan", "Roy", "Royce", "Ruben", "Rudy", "Russell", "Ryan", "Ryker",
+
+        "Saul", "Sage", "Salvador", "Sam", "Samir", "Sammy", "Samuel", "Santiago", "Santino", "Saul", "Scott", "Sean", "Sebastian", "Sergio", "Seth", "Shane", "Shaun", "Shawn", "Shiloh", "Sidney", "Silas", "Simon", "Skylar", "Soren", "Spencer", "Stan", "Stanley", "Stefan", "Stephen", "Steve", "Steven", "Stuart", "Sullivan", "Syed", "Sylvester", "Saber", "Sabin", "Sadiq", "Saeed", "Said", "Salim", "Salman", "Samar", "Samson", "Sanders", "Santo", "Sarim", "Sasha", "Satchel", "Satoshi", "Saul (DUP?)", "Seamus", "Seiji", "Severin", "Shadi", "Shalom", "Shamar", "Shayan", "Sheldon", "Sherwin", "Shiloh (DUP?)", "Shin", "Sigmund", "Silver", "Skyler", "Solomon", "Soren (DUP?)", "Stellan", "Stone", "Sylvio", "Sydney",
+
+        "Taj", "Talon", "Tanner", "Tate", "Taylor", "Ted", "Teddy", "Terrance", "Terrell", "Terrence", "Terry", "Thaddeus", "Theo", "Theodore", "Thiago", "Thomas", "Tim", "Timothy", "Titus", "Tobias", "Toby", "Todd", "Tom", "Tomas", "Tommy", "Tony", "Trace", "Travis", "Trent", "Trenton", "Trevor", "Trey", "Tristan", "Troy", "Truman", "Tucker", "Ty", "Tyler", "Tyree", "Tyrell", "Tyrese", "Tyrone", "Tyson",
+
+        "Ulises", "Ulysses", "Uri", "Uriel", "Udell", "Ugo", "Umar", "Umberto", "Umesh", "Umit", "Upton", "Urbain", "Urban", "Uriyah", "Urvin", "Usain", "Usher", "Usman", "Utah", "Utkarsh", "Uwe", "Uzair", "Uzi", "Udoka", "Udochukwu", "Umair", "Umair (DUP?)", "Ubadah", "Uziyah", "Umarion", "Ulmer", "Uchiha", "Uzi (DUP?)", "Ulton", "Ucamp", "Udom", "Unai", "Uuno", "Uwais", "Uzziah", "Udochukwu (DUP?)", "Uman", "Urosh", "Uche",
+
+        "Valentino", "Valentin", "Valentine", "Van", "Vance", "Vaughn", "Vernon", "Victor", "Vince", "Vincent", "Vincenzo", "Virgil", "Vito", "Vlad", "Vachel", "Vade", "Vadim", "Vale", "Valerio", "Valerian", "Vali", "Valo", "Vander", "Varian", "Vaughan", "Vayden", "Vedad", "Velton", "Ventura", "Verdi", "Vergil", "Vermont", "Vern", "Vero", "Vester", "Vihaan", "Vijay", "Vikram", "Vikran", "Vimal", "Vincey", "Vincenz", "Vinson", "Vitaly", "Vitor", "Viviano", "Vivien", "Volker",
+
+        "Wade", "Walker", "Wallace", "Walter", "Warren", "Watson", "Waylon", "Wayne", "Wes", "Wesley", "Weston", "Wilbur", "Wilfred", "Will", "William", "Willie", "Wilson", "Winston", "Wyatt", "Wade (DUP?)", "Waldemar", "Walden", "Walton", "Warhol", "Warrick", "Washington", "Waterman", "Watkins", "Waverly", "Webster", "Weldon", "Welles", "Wellington", "Wendell", "Weslin", "West", "Westley", "Wharton", "Wheeler", "Whitaker", "Whitman", "Wilburn", "Wiley", "Wilhelm", "Willoughby", "Wilmar", "Wilmer", "Wilton", "Winfield", "Winfred", "Windsor", "Winton", "Woodrow", "Wycliffe",
+
+        "Xander", "Xavier", "Xzavier", "Xaiden", "Xai", "Xan", "Xanthe", "Xarion", "Xeno", "Xerxes", "Xever", "Xilion", "Ximian", "Ximen", "Ximon", "Xyler", "Xylon", "Xzayden", "Xyan", "Xairo", "Xade", "Xador", "Xylon (DUP?)", "Xerion", "Xevon", "Xaylon", "Xian", "Xiro", "Xilton", "Xynex", "Xivian", "Xoa", "Xori", "Xolio", "Xeston", "Xilvio", "Xayden (DUP?)", "Xamuel", "Xanthos", "Xeleion", "Xevin", "Xemir",
+
+        "Yahir", "Yosef", "Yousef", "Yusuf", "Yaakov", "Yael", "Yago", "Yahir (DUP?)", "Yahya", "Yair", "Yale", "Yan", "Yancy", "Yannick", "Yannis", "Yash", "Yasir", "Yehuda", "Yildirim", "Yin", "Yishai", "Ylan", "Yoan", "Yoel", "Yohann", "Yohannes", "Yona", "Yonatan", "York", "Yotam", "Yovo", "Yovan", "Yovanni", "Yuri", "Yusef", "Yusif", "Yuval", "Yves", "Yzaiah", "Yordan", "Yul", "Yuvin", "Yoma", "Ymar", "Yavin", "Yachin", "Yatri", "Yuden",
+
+        "Zachariah", "Zachary", "Zaid", "Zaiden", "Zain", "Zaire", "Zander", "Zane", "Zayden", "Zeke", "Zion", "Zabad", "Zacchaeus", "Zacchai", "Zafir", "Zahid", "Zahir", "Zaka", "Zakari", "Zakariya", "Zamir", "Zaniel", "Zarek", "Zayan", "Zayne", "Zed", "Zephyr", "Zerach", "Ziad", "Ziel", "Zionel", "Ziven", "Zoltan", "Zoran", "Zyair", "Zylen", "Zavion", "Zayvion", "Zesiro", "Zylon", "Zawadi", "Zabulon", "Zedd", "Zakiel", "Zeren", "Zaydan", "Zeid", "Zaichiro", "Zudek", "Ziyad", 
+   }; 
+    
+   public List<string> femaleNames = new List<string> 
+   { // (Similarly expand all letters < 50)
+
+        "Aaliyah", "Abby", "Abigail", "Ada", "Adaline", "Addison", "Adelaide", "Adele", "Adelina", "Adeline", "Adriana", "Adrienne", "Agnes", "Aileen", "Ainsley", "Aisha", "Alaina", "Alana", "Alani", "Alanna", "Alayna", "Alba", "Aleah", "Alejandra", "Alexa", "Alexandra", "Alexandria", "Alexia", "Alia", "Alice", "Alicia", "Alina", "Alisa", "Alison", "Alissa", "Allie", "Allison", "Ally", "Alma", "Alondra", "Alyson", "Alyssa", "Amalia", "Amanda", "Amani", "Amara", "Amari", "Amber", "Amelia", "Amelie", "Amina", "Amira", "Amy", "Ana", "Anabel", "Anastasia", "Andrea", "Angela", "Angelica", "Angelina", "Angie", "Anika", "Anita", "Aniya", "Ann", "Anna", "Annabel", "Annabella", "Annabelle", "Annalise", "Anne", "Annette", "Annie", "Annika", "Ansley", "Antonia", "April", "Arabella", "Aria", "Ariana", "Arianna", "Ariel", "Ariella", "Arlette", "Ashlee", "Ashley", "Ashlyn", "Aspen", "Astrid", "Athena", "Aubree", "Aubrey", "Aubrielle", "Audrey", "August", "Aurelia", "Aurora", "Autumn", "Ava", "Avery", "Aviana", "Ayana", "Ayla",
+
+        "Bailee", "Bailey", "Barbara", "Baylee", "Beatrice", "Beatrix", "Becca", "Becky", "Belinda", "Bella", "Bernadette", "Beth", "Bethany", "Betsy", "Betty", "Bianca", "Billie", "Blair", "Blaire", "Blake", "Blanca", "Bonnie", "Brandi", "Brandy", "Breanna", "Brenda", "Brenna", "Briana", "Brianna", "Briar", "Bridget", "Bridgette", "Briella", "Brielle", "Brittany", "Brooke", "Brooklyn", "Brylee", "Brynn", "Babette", "Bahar", "Bailee (DUP?)", "Bali", "Baylor", "Beatriz", "Benita", "Berenice", "Beryl", "Bexley", "Bibi", "Birdie", "Bithiah", "Bluma", "Braelynn", "Briallen", "Brienne", "Brinley", "Brisha", "Bronwyn", "Brydie", "Byrne",
+
+        "Cadence", "Caitlin", "Caitlyn", "Calista", "Callie", "Cambria", "Camila", "Camilla", "Camille", "Candace", "Candice", "Cara", "Carina", "Carissa", "Carla", "Carlie", "Carmen", "Carolina", "Caroline", "Carolyn", "Carrie", "Casey", "Cassandra", "Cassidy", "Cassie", "Catalina", "Catherine", "Cecelia", "Cecilia", "Celeste", "Celia", "Chanel", "Charity", "Charlene", "Charlotte", "Charmaine", "Chelsea", "Cher", "Cheryl", "Cheyenne", "Chloe", "Christa", "Christina", "Christine", "Ciara", "Cindy", "Claire", "Clara", "Clarissa", "Claudia", "Colette", "Connie", "Cora", "Coraline", "Courtney", "Cristina", "Crystal", "Cynthia",
+
+        "Daisy", "Dakota", "Dalia", "Dana", "Daniela", "Daniella", "Danielle", "Daphne", "Darlene", "Dawn", "Dayana", "Deborah", "Delaney", "Delia", "Delilah", "Della", "Denise", "Desiree", "Diana", "Diane", "Dianna", "Dina", "Dixie", "Dominique", "Donna", "Dora", "Doreen", "Dorothy", "Drew", "Damara", "Damaris", "Danica", "Darla", "Dariana", "Davina", "Daylin", "Deena", "Delora", "Delphine", "Demetria", "Demi", "Desirae", "Devorah", "Diamante", "Diona", "Diya", "Dolly", "Donatella", "Dove", "Druscilla", "Dulce", "Dusty", "Dyana",
+
+        "Eden", "Edith", "Eileen", "Elaine", "Eleanor", "Elena", "Eliana", "Elianna", "Elina", "Elisa", "Elisabeth", "Elise", "Eliza", "Elizabeth", "Ella", "Elle", "Ellen", "Elliana", "Ellie", "Elodie", "Eloise", "Elsa", "Elsie", "Elyse", "Ember", "Emelia", "Emely", "Emerson", "Emilia", "Emilie", "Emily", "Emma", "Emmaline", "Emmalyn", "Erica", "Erika", "Erin", "Esme", "Esmeralda", "Estella", "Estelle", "Esther", "Eva", "Evangeline", "Eve", "Evelyn", "Everleigh", "Evie",
+
+        "Faith", "Fallon", "Farrah", "Fatima", "Faye", "Felicia", "Felicity", "Fern", "Finley", "Fiona", "Flora", "Florence", "Frances", "Francesca", "Freya", "Fabiola", "Fadia", "Faina", "Faiza", "Faline", "Fanchon", "Farida", "Farrah (DUP?)", "Fauna", "Fawn", "Fawzia", "Fedora", "Fei", "Ferelith", "Fia", "Fiadh", "Fianna", "Fleur", "Flavia", "Freda", "Fredrika", "Frederica", "Frederique", "Frida", "Fritha", "Fuchsia", "Fulvia", "Fynn", "Fatou", "Florina", "Freyja", "Ffion", "Fynlee", "Fjord", "Fayruz",
+
+        "Gabby", "Gabriela", "Gabriella", "Gabrielle", "Gail", "Genesis", "Genevieve", "Georgia", "Georgina", "Gia", "Gillian", "Gina", "Giselle", "Gloria", "Grace", "Gracie", "Greta", "Gretchen", "Guadalupe", "Gwen", "Gwendolyn", "Gaia", "Galina", "Gardenia", "Garima", "Gayle", "Geena", "Gemma", "Geneva", "Genoveva", "Gentille", "Georgette", "Geraldine", "Gertie", "Giada", "Gianna", "Gigi", "Giovanna", "Giuseppina", "Gladys", "Goldie", "Golda", "Grazia", "Grayce", "Grizelda", "Guinevere", "Guinivere", "Gwyneira", "Gwyneth", "Gytha", "Galilea", "Goddess", "Gizelle",
+
+        "Hadley", "Hailee", "Hailey", "Haley", "Halle", "Hallie", "Hana", "Hannah", "Harley", "Harmony", "Harper", "Harriet", "Haven", "Hayden", "Haylee", "Hazel", "Heather", "Heidi", "Helen", "Helena", "Holly", "Hope", "Hadassah", "Hadiya", "Haifa", "Halina", "Halla", "Harmonia", "Harriett (variant?)", "Hatice", "Havilah", "Haya", "Heidy", "Helene", "Heloise", "Hermione", "Hero", "Hestia", "Hilda", "Hillary", "Holland", "Honora", "Honey", "Honor", "Hortense", "Hoshi", "Hosanna", "Houston (female??)", "Hyacinth",
+
+        "Ila", "Iliana", "Imani", "India", "Indie", "Ines", "Ingrid", "Irene", "Iris", "Irma", "Isabel", "Isabela", "Isabella", "Isabelle", "Isis", "Isla", "Ivana", "Ivory", "Ivy", "Izabella", "Ianthe", "Ibbie", "Ida", "Idalia", "Idara", "Idella", "Ife", "Ifrah", "Ileana", "Ilma", "Imelda", "Imogen", "Indira", "Inga", "Iona", "Iolanda", "Ireland", "Irie", "Isaura", "Islay", "Ismay", "Itzel", "Izumi", "Ifeoma", "Ibtisam", "Irena", "Ildiko", "Ivette", "Ivonne",
+
+        "Jackie", "Jaclyn", "Jacqueline", "Jada", "Jade", "Jaelyn", "Jamila", "Jamie", "Jana", "Jane", "Janelle", "Janessa", "Janet", "Janice", "Janie", "Jasmine", "Jasmin", "Jayda", "Jayla", "Jayleen", "Jaylen", "Jazlyn", "Jazmin", "Jazmine", "Jean", "Jeanette", "Jeanne", "Jemima", "Jen", "Jena", "Jenna", "Jennifer", "Jenny", "Jessica", "Jessie", "Jewel", "Jill", "Jillian", "Jo", "Joan", "Joanna", "Joanne", "Jocelyn", "Jodie", "Jordan", "Jordyn", "Josephine", "Josie", "Joy", "Joyce", "Judith", "Judy", "Julia", "Juliana", "Julianna", "Julianne", "Julie", "Juliet", "Juliette", "June", "Juniper", "Justine",
+
+        "Kaitlin", "Kaitlyn", "Kali", "Kalia", "Kallie", "Kamila", "Kara", "Karen", "Karina", "Karla", "Karlee", "Karly", "Karolina", "Kassandra", "Kassidy", "Kate", "Katelyn", "Katelynn", "Katerina", "Katharine", "Katherine", "Kathleen", "Kathryn", "Kathy", "Katie", "Katrina", "Kay", "Kaya", "Kayla", "Kaylee", "Kayleigh", "Keira", "Kelsey", "Kendall", "Kendra", "Kenna", "Kenzie", "Keri", "Kerri", "Khloe", "Kiara", "Kiera", "Kim", "Kimber", "Kimberlee", "Kimberly", "Kinsley", "Kira", "Kirsten", "Kori", "Krista", "Kristen", "Kristin", "Kristina", "Kristy", "Krystal", "Kyla", "Kylee", "Kylie", "Kyra",
+
+        "Lacey", "Laci", "Laila", "Lainey", "Lana", "Laney", "Lara", "Laura", "Laurel", "Lauren", "Laurie", "Layla", "Lea", "Leah", "Leandra", "Leann", "Leanna", "Leanne", "Leia", "Leila", "Lena", "Leslie", "Leticia", "Lexi", "Lexie", "Lia", "Liana", "Libby", "Lila", "Lilah", "Lilia", "Lilian", "Liliana", "Lillian", "Lillie", "Lilly", "Lily", "Linda", "Lindsay", "Lindsey", "Lisa", "Livia", "Liz", "Liza", "Lizbeth", "Lizette", "Logan", "Lola", "London", "Lora", "Lorelei", "Lorena", "Lori", "Lorna", "Lorraine", "Louisa", "Louise", "Lucia", "Luciana", "Lucille", "Lucy", "Luisa", "Luna", "Luz", "Lydia", "Lyla", "Lyric",
+
+        "Mabel", "Macey", "Mackenzie", "Macy", "Madalyn", "Maddison", "Madeleine", "Madeline", "Madelyn", "Madison", "Mae", "Maeve", "Maggie", "Maia", "Maisie", "Makayla", "Makenna", "Makenzie", "Malaya", "Malia", "Mallory", "Mandy", "Manuela", "Mara", "Marcy", "Margaret", "Margarita", "Margaux", "Margo", "Margot", "Maria", "Mariah", "Mariam", "Mariana", "Marianna", "Marie", "Marilyn", "Marina", "Marion", "Marisa", "Marisol", "Marissa", "Maritza", "Marlee", "Marlene", "Marnie", "Martha", "Martina", "Mary", "Maryam", "Matilda", "Mattie", "Maude", "Mavis", "Maxine", "May", "Maya", "Meadow", "Meagan", "Megan", "Melanie", "Melina", "Melinda", "Melissa", "Melody", "Mercedes", "Mercy", "Meredith", "Mia", "Michaela", "Michelle", "Mikaela", "Mila", "Milana", "Milena", "Miley", "Millie", "Mina", "Mindy", "Miracle", "Miranda", "Miriam", "Misty", "Molly", "Monica", "Monroe", "Morgan", "Myla", "Myra", "Myrna", "Myrtle",
+
+        "Nadia", "Nadine", "Nala", "Nancy", "Naomi", "Natalia", "Natalie", "Natasha", "Nathalie", "Naya", "Nayeli", "Neha", "Nell", "Nella", "Nellie", "Nelly", "Neva", "Nevaeh", "Nia", "Nicolette", "Nikita", "Nina", "Noa", "Noelle", "Nola", "Nora", "Norah", "Norma", "Nova", "Nyla", "Nylah", "Nadira", "Nafisa", "Naima", "Nalani", "Nanette", "Nandini", "Narela", "Nasima", "Natala", "Neala", "Neda", "Neena", "Nereida", "Nikita (DUP?)", "Ninette", "Noemi", "Noor", "Nyara", "Nyasia", "Nyra",
+
+        "Oaklee", "Oakley", "Octavia", "Odalis", "Odalys", "Odette", "Ofelia", "Olga", "Olive", "Olivia", "Oona", "Opal", "Ophelia", "Ora", "Orianna", "Orla", "Odelina", "Odessa", "Odilia", "Olesia", "Oliana", "Olivet", "Olwen", "Olympia", "Oneida", "Onora", "Oona (DUP?)", "Opaline", "Oraia", "Orabel", "Oriana (DUP?)", "Orina", "Orly", "Orva", "Osana", "Ottilie", "Ottoline", "Ozella", "Orah", "Omella", "Odina", "Océane", "Olenka", "Oessia", "Oyvana", "Olyssa", "Olana", "Omari (female?)", "Olari",
+
+        "Paige", "Paislee", "Paisley", "Paloma", "Pamela", "Pandora", "Paola", "Paris", "Parker", "Patience", "Patricia", "Patsy", "Paula", "Paulette", "Paulina", "Pauline", "Payton", "Pearl", "Peggy", "Penelope", "Perla", "Petra", "Peyton", "Phoebe", "Phoenix", "Piper", "Poppy", "Portia", "Precious", "Presley", "Princess", "Priscilla", "Pacifica", "Paityn", "Parvati", "Payge", "Peg", "Pelagia", "Perpetua", "Persis", "Philippa", "Philomenia", "Phylicia", "Piera", "Pilar", "Posie", "Primrose", "Promise", "Prudence", "Promisea", "Preslie", "Penrose",
+
+        "Quiana", "Quincy", "Quinn", "Quintessa", "Qadira", "Qamar", "Qiana (DUP?)", "Qing", "Qirat", "Quetzali", "Queenie", "Quella", "Quenby", "Queralt", "Questa", "Quillan", "Quincy (DUP?)", "Quintana", "Quinzella", "Quorey", "Quorina", "Quella (DUP?)", "Quirella", "Quollany", "Qiresia", "Qimara", "Quissandra", "Qasida", "Qassandra", "Quinzia", "Quieva", "Qhildra", "Queshly", "Quevania", "Quinisha", "Quorrah", "Quila", "Quitana", "Qylee", "Qadyra", "Qyra", "Quinsella", "Quendra", "Quisha",
+
+        "Rachael", "Rachel", "Rae", "Raegan", "Raina", "Ramona", "Randi", "Raven", "Rayna", "Reagan", "Reba", "Rebekah", "Reese", "Regan", "Regina", "Reign", "Reina", "Remi", "Remy", "Rena", "Renata", "Rhea", "Rhonda", "Riley", "Rina", "Rita", "River", "Roberta", "Robin", "Rochelle", "Rocio", "Romina", "Rory", "Rosa", "Rosalie", "Rosalind", "Rosalinda", "Rosaline", "Rosanna", "Rose", "Rosemarie", "Rosemary", "Roselyn", "Rosetta", "Rosie", "Rowan", "Roxana", "Roxanne", "Ruby", "Ruth", "Ruthie", "Ryan", "Ryann", "Rylee", "Rylie",
+
+        "Sabina", "Sabrina", "Sadie", "Sage", "Sahara", "Sally", "Salma", "Samantha", "Samara", "Samira", "Sandra", "Sandy", "Saniyah", "Sara", "Sarah", "Sarai", "Sarina", "Sasha", "Savanna", "Savannah", "Scarlet", "Scarlett", "Selah", "Selena", "Selina", "Serena", "Serenity", "Shae", "Shaina", "Shakira", "Shana", "Shania", "Shannon", "Sharona", "Shay", "Shayla", "Shea", "Sheila", "Shelby", "Shelley", "Sheri", "Sherri", "Sherry", "Shiloh", "Shirley", "Sia", "Siena", "Sierra", "Silvia", "Simone", "Skye", "Skyla", "Skylar", "Sloane", "Sofia", "Solana", "Sonia", "Sonya", "Sophia", "Sophie", "Spring", "Stacy", "Star", "Stella", "Stephanie", "Stevie", "Summer", "Susan", "Susanna", "Susannah", "Suzanne", "Sybil", "Sylvia", "Sylvie",
+
+        "Tabitha", "Tahlia", "Talia", "Tallulah", "Tamara", "Tamera", "Tami", "Tamia", "Tamika", "Tammy", "Tania", "Tanisha", "Tanya", "Tara", "Taryn", "Tasha", "Tatiana", "Tatum", "Taya", "Taylor", "Teagan", "Tegan", "Tenley", "Teresa", "Teri", "Tess", "Tessa", "Thalia", "Thea", "Theodora", "Theresa", "Tiana", "Tiara", "Tiffany", "Tina", "Tinsley", "Tisha", "Tori", "Tracey", "Tracy", "Tricia", "Trina", "Trinity", "Trisha", "Trista", "Trixie", "Tyla", "Tyra",
+
+        "Una", "Unity", "Ursula", "Uchenna", "Udora", "Ugonna", "Uhura", "Ulani", "Umeko", "Umnia", "Urania", "Ursa", "Urvi", "Usagi", "Utopia", "Utami", "Urena", "Umara", "Udita", "Ulan", "Ulyana", "Umika", "Unity (DUP?)", "Uriya", "Uzoma", "Umani", "Urose", "Uilani", "Uzra", "Umaiza", "Urika", "Umah", "Unathi", "Uwanda", "Ursuline", "Umbria", "Ukari", "Uchara", "Ukiah", "Umaara", "Urbina", "Umadevi", "Ubinya", "Ulka",
+
+        "Valencia", "Valentina", "Valerie", "Vanessa", "Veda", "Velma", "Venus", "Vera", "Verity", "Verna", "Veronica", "Vesper", "Vianna", "Vicki", "Vickie", "Vicky", "Victoria", "Vienna", "Violet", "Virginia", "Vivian", "Viviana", "Vivienne", "Valinda", "Valora", "Vanda", "Varsha", "Vasilisa", "Vayda", "Venetia", "Ventura", "Veradis", "Verona", "Vevina", "Vianca", "Vicenta", "Vienna (DUP?)", "Vionette", "Viridiana", "Viveca", "Vivica", "Vivia", "Volga", "Vondra", "Vylette", "Vrai", "Vreni",
+
+        "Wanda", "Waverly", "Wendy", "Whitney", "Wilhelmina", "Willa", "Willow", "Winifred", "Winnie", "Winter", "Wallis", "Wanita", "Waria", "Wednesday", "Welda", "Wendeline", "Wendie", "Weslie", "Whisper", "Whitley", "Wilda", "Willadean", "Willamine", "Willodean", "Windy", "Winslet", "Wisdom", "Wynnie", "Wynona", "Wynter", "Wynfrey", "Wren", "Wryn", "Willa (DUP?)", "Weslyn", "Wallace (f?)", "Winda", "Wynfell", "Wynda", "Winnette", "Wallenda", "Winry", "Winnifred (variant?)", "Waylynn", "Worley", "Wanessa",
+
+        "Xandra", "Xena", "Ximena", "Xochitl", "Xadie", "Xami", "Xania", "Xanthia", "Xavienna", "Xaylee", "Xelina", "Xenna", "Xeresa", "Xeva", "Xiana", "Xilena", "Xiomara", "Xirena", "Xitlali", "Xiyarah", "Xodie", "Xoey", "Xola", "Xophia", "Xusha", "Xyla", "Xylia", "Xandria", "Xyliana", "Xalina", "Xaviera", "Xenobia", "Xcarlett", "Xochil (variant?)", "Xinara", "Xewell", "Xehanna", "Xharisse", "Xhinaya", "Xenesta", "Xileta", "Xanora", "Xobi", "Xanelli", "Xhania", "Xiarra", "Xenly", "Xhayle",
+
+        "Yara", "Yasmin", "Yasmine", "Yazmin", "Yesenia", "Yolanda", "Yoselin", "Yuliana", "Yvette", "Yvonne", "Yaalini", "Yadira", "Yaira", "Yamileth", "Yamira", "Yamuna", "Yaneli", "Yanira", "Yara (DUP?)", "Yasmeen", "Yelena", "Yemaya", "Yeraldine", "Yessica", "Yesenia (DUP?)", "Yiselle", "Yolande", "Yonina", "Yoseline", "Yovana", "Yulia", "Yuna", "Yusra", "Yuuna", "Yvaine", "Yvanna", "Yamina", "Ynez", "Yroslia", "Yvanka", "Ysinia", "Yaire (DUP?)", "Yarissa", "Yulisa", "Yarisbeth", "Yrelis", "Yuvika", "Yuralin",
+
+        "Zada", "Zahara", "Zaina", "Zandra", "Zara", "Zaria", "Zarina", "Zaya", "Zaylee", "Zelda", "Zella", "Zena", "Zia", "Zinnia", "Ziva", "Zoe", "Zoey", "Zola", "Zora", "Zoya", "Zuri", "Zabrina", "Zada (DUP?)", "Zafira", "Zaharina", "Zahira", "Zaida", "Zahra", "Zakiya", "Zaklina", "Zamora", "Zaneta", "Zanna", "Zarita", "Zayra", "Zeina", "Zella (DUP?)", "Zemira", "Zephyra", "Zerina", "Zeva", "Zilah", "Zinia", "Zita", "Ziva (DUP?)", "Zivaeh", "Zofia", "Zorina", "Zoyanna", "Zulena", "Zuly", "Zuzanna" 
+   };
+
+    public List<string> lastNames = new List<string>
     {
-        // Ensure that there is only one NPCManager instance.
-        if (Instance != null && Instance != this)
+       "Abbott", "Abebe", "Abel", "Abidi", "Abrahamyan", "Abrams", "Abril", "Acharya", "Acosta", "Adams", "Adelakun", "Adkins", "Afolayan", "Agbaje", "Aguilar", "Aguilera", "Aguirre", "Ahmadi", "Ahmed", "Aitken", "Akaike", "Akers", "Akinfenwa", "Akita", "Alexander", "Ali", "Allen", "Allison", "Almeida", "Alston", "Altamirano", "Alvarado", "Alvarez", "Amari", "Amini", "Andersen", "Anderson", "Andoh", "Andrade", "Andrews", "Anthony", "Antoniou", "Anwar", "Araya", "Arce", "Archer", "Arellano", "Arias", "Armstrong", "Arnold", "Arora", "Arroyo", "Ashley", "Ashton", "Aslam", "Asante", "Ashkenazi", "Atkins", "Atkinson", "Aung", "Austin", "Avery", "Avila", "Ayala", "Ayers",
+
+        "Babb", "Babic", "Bacchus", "Bach", "Badawi", "Bae", "Baez", "Bagheri", "Bai", "Bailey", "Baird", "Bajaj", "Baker", "Bakshi", "Balakrishnan", "Ball", "Ballard", "Banda", "Banks", "Bao", "Barajas", "Barber", "Barlow", "Barnes", "Barnett", "Barrett", "Barron", "Barry", "Bartlett", "Bass", "Bates", "Battle", "Bauer", "Bautista", "Baxter", "Beach", "Beard", "Beasley", "Beck", "Becker", "Beltran", "Benjamin", "Bennett", "Bentley", "Benton", "Berger", "Berry", "Best", "Bishop", "Black", "Blackburn", "Blackwell", "Blair", "Blake", "Blanchard", "Blankenship", "Blevins", "Bolton", "Bond", "Bonner", "Booker", "Boone", "Booth", "Bowen", "Bowers", "Bowman", "Boyd", "Boyer", "Boyle", "Bradford", "Bradley", "Bradshaw", "Brady", "Branch", "Bray", "Brennan", "Brewer", "Bridges", "Briggs", "Bright", "Britt", "Brock", "Brooks", "Brown", "Browning", "Bruce", "Bryan", "Bryant", "Buchanan", "Buck", "Buckley", "Bullock", "Burgess", "Burke", "Burnett", "Burns", "Burton", "Bush", "Butler", "Byers", "Byrd",
+
+        "Cabral", "Cabrera", "Cadogan", "Cain", "Calderon", "Caldwell", "Calhoun", "Callahan", "Camacho", "Cameron", "Campbell", "Campos", "Cannon", "Cantrell", "Cantu", "Cardenas", "Carey", "Carlson", "Carney", "Carpenter", "Carr", "Carrillo", "Carroll", "Carson", "Carter", "Carver", "Case", "Casey", "Cash", "Castaneda", "Castillo", "Castro", "Cervantes", "Chambers", "Chan", "Chandler", "Chang", "Chapman", "Charles", "Chase", "Chavez", "Chen", "Cherry", "Christensen", "Christian", "Church", "Clark", "Clarke", "Clay", "Clayton", "Clements", "Clemons", "Cleveland", "Cline", "Cobb", "Cochran", "Coffey", "Cohen", "Cole", "Coleman", "Collier", "Collins", "Colon", "Compton", "Conley", "Conner", "Conrad", "Contreras", "Cook", "Cooke", "Cooley", "Cooper", "Copeland", "Cortez", "Cote", "Cotton", "Cox", "Craft", "Craig", "Crane", "Crawford", "Crosby", "Cross", "Cruz", "Cummings", "Cunningham", "Curry", "Curtis",
+
+        "Dalton", "Daniel", "Daniels", "Daugherty", "Davenport", "David", "Davidson", "Davis", "Dawson", "Day", "Dean", "Decker", "Delacruz", "Delgado", "Dennis", "Diaz", "Dickerson", "Dixon", "Dominguez", "Donaldson", "Donovan", "Douglas", "Drake", "Dudley", "Duffy", "Duke", "Duncan", "Dunn", "Durham",
+
+        "Eady", "Eagan", "Earle", "Early", "Earnest", "Eason", "East", "Eastman", "Easton", "Eaton", "Eaves", "Ebadi", "Ebanks", "Eberhardt", "Eberle", "Ebert", "Ebony", "Eccleston", "Echeverria", "Eckert", "Eckhart", "Eckstein", "Eddy", "Edgar", "Edge", "Edgecombe", "Edgerton", "Edgington", "Edmond", "Edmonds", "Edmondson", "Edmunds", "Edmundson", "Edouard", "Edson", "Edward", "Edwards", "Effendi", "Egbe", "Egbert", "Eggers", "Eguchi", "Egwu", "Ehlers", "Ehrlich", "Ehsan", "Eid", "Eilers", "Eisenberg", "Ekblad", "Ekundayo", "Ekwueme",
+        
+        "Farley", "Farmer", "Farrell", "Faulkner", "Ferguson", "Fernandez", "Fields", "Figueroa", "Finley", "Fischer", "Fisher", "Fitzgerald", "Fleming", "Fletcher", "Flores", "Flynn", "Foley", "Ford", "Foster", "Fowler", "Fox", "Francis", "Frank", "Franklin", "Freeman", "French", "Frost", "Fry", "Fuller",
+
+        "Gallagher", "Garcia", "Gardner", "Garrett", "Garza", "George", "Gibbs", "Gibson", "Gilbert", "Gill", "Gilmore", "Glass", "Glenn", "Glover", "Gomez", "Gonzalez", "Goodman", "Goodwin", "Gordon", "Gould", "Graham", "Grant", "Gray", "Green", "Greene", "Griffin", "Gross", "Guerra", "Guerrero", "Gutierrez", "Guzman",
+
+        "Haas", "Hahn", "Hale", "Haley", "Hall", "Hamilton", "Hammond", "Hampton", "Han", "Hancock", "Haney", "Hansen", "Hanson", "Hardin", "Harding", "Hardy", "Harmon", "Harper", "Harrington", "Harris", "Harrison", "Hart", "Harvey", "Hatfield", "Hawkins", "Hayden", "Hayes", "Haynes", "Heath", "Henderson", "Hendricks", "Henry", "Hensley", "Hernandez", "Herrera", "Herring", "Hess", "Hester", "Hewitt", "Hickman", "Hicks", "Higgins", "Hill", "Hines", "Hinton", "Hobbs", "Hodge", "Hoffman", "Hogan", "Holcomb", "Holden", "Holland", "Holloway", "Holmes", "Holt", "Hood", "Hooper", "Hopkins", "Hopper", "Horn", "Horne", "Horton", "House", "Houston", "Howard", "Howe", "Howell", "Hubbard", "Hudson", "Huff", "Hughes", "Hull", "Humphrey", "Hunt", "Hunter", "Hurley", "Hurst", "Hutchinson", "Hyde", "Hyland", "Hyman",
+
+
+        "Ibarra", "Ibbetson", "Ibrahim", "Ibnouf", "Ibrihim", "Ibsen", "Ibtihaj", "Ichikawa", "Ichiro", "Idah", "Iddrisu", "Idehen", "Idowu", "Ifeanyi", "Iffat", "Ifeoma", "Ige", "Iglesias", "Igwe", "Iheanacho", "Iida", "Ijaz", "Ikeda", "Ikenna", "Ikharo", "Ilunga", "Imam", "Imari", "Imran", "Inaba", "Inagawa", "Inayat", "Ingram", "Inoue", "Intisar", "Iqbal", "Irani", "Irvin", "Irving", "Isa", "Isaacs", "Isah", "Ishida", "Ishikawa", "Ishmael", "Iskandar", "Ismail", "Issa", "Issaka", "Ito", "Ivey",
+
+        "Jabari", "Jack", "Jackson", "Jacobs", "Jacobson", "Jaffar", "Jahangir", "Jain", "Jalil", "Jalloh", "James", "Jamison", "Janneh", "Jansen", "Jara", "Jarvis", "Javed", "Jawara", "Jayawardene", "Jean", "Jefferson", "Jeffery", "Jenkins", "Jenkinson", "Jennings", "Jensen", "Jeong", "Jimenez", "Jin", "Jinadu", "Joaquim", "Johns", "Johnson", "Johnston", "Joiner", "Jones", "Jordan", "Joseph", "Joyce", "Juarez",
+
+        "Kabir", "Kagawa", "Kaing", "Kakar", "Kalaba", "Kalema", "Kamal", "Kang", "Kannan", "Kanu", "Karim", "Kassahun", "Kato", "Kaur", "Kazemi", "Kebede", "Keita", "Keller", "Kelly", "Kent", "Kerr", "Khalid", "Khatun", "Kim", "King", "Kinney", "Kirby", "Kirk", "Kirkland", "Klein", "Knapp", "Knight", "Knowles", "Knox", "Ko", "Kobayashi", "Kodjo", "Koffi", "Kondo", "Kouadio", "Kumar", "Kurosawa",
+
+        "Lacey", "Lagos", "Lai", "Lakhani", "Lama", "Lamb", "Lambert", "Lancaster", "Landry", "Lane", "Lang", "Langley", "Lara", "Larsen", "Larson", "Lawrence", "Laws", "Lawson", "Le", "Leach", "Lee", "Leon", "Leonard", "Leung", "Levine", "Levy", "Lewis", "Li", "Liao", "Ling", "Liu", "Livingston", "Lloyd", "Lo", "Logan", "Long", "Lopez", "Lott", "Love", "Lowe", "Lowery", "Lu", "Lucas", "Lucero", "Lugo", "Luna", "Luu", "Ly", "Lynch", "Lynn",
+
+        "Macias", "Mack", "Madden", "Maddox", "Maguire", "Mahajan", "Mahmoud", "Mai", "Mak", "Makinde", "Malek", "Malhotra", "Maluleke", "Manabe", "Manuel", "Mao", "Maradiaga", "Marasigan", "Mari", "Marquez", "Marti", "Martinez", "Mashaba", "Masoud", "Mason", "Masuda", "Mateus", "Mathews", "Matondo", "Matsuda", "Matveev", "Mau", "Maxwell", "May", "Mazibuko", "Mbatha", "Mbemba", "McBride", "McCall", "McCann", "McCarthy", "McCarty", "McClain", "McClure", "McConnell", "McCormick", "McCoy", "McCray", "McCullough", "McDaniel", "McDonald", "McDowell", "McFadden", "McFarland", "McGee", "McGowan", "McGuire", "McIntosh", "McKay", "McKee", "McKenzie", "McKinney", "McKnight", "McLaughlin", "McLean", "McLeod", "McMahon", "McMillan", "McNeil", "McPherson", "Meadows", "Medina", "Mehta", "Mejia", "Mendoza", "Menendez", "Meng", "Mensah", "Mercado", "Merrill", "Merritt", "Meyer", "Meyers", "Michael", "Middleton", "Miles", "Miller", "Mills", "Miranda", "Mitchell", "Miyake", "Mizuno", "Mohamed", "Mohammadi", "Molina", "Monroe", "Montgomery", "Montoya", "Moody", "Moon", "Mooney", "Moore", "Moradi", "Morales", "Moran", "Moreno", "Morgan", "Morin", "Morris", "Morrison", "Morrow", "Morse", "Morton", "Moses", "Mosley", "Moss", "Mueller", "Muhammad", "Mukasa", "Mullen", "Mullins", "Munene", "Munoz", "Murakami", "Murphy", "Murray", "Musa", "Mutiso", "Mwangi", "Myers",
+
+        "Nadar", "Nadeem", "Nadim", "Naganuma", "Nagy", "Naidoo", "Naik", "Naing", "Nakamura", "Namboodiri", "Nanda", "Nandy", "Nangle", "Napier", "Nash", "Nasir", "Nassar", "Nasser", "Nastasi", "Natarajan", "Nathan", "Natividad", "Navarro", "Navid", "Nawab", "Nayak", "Naylor", "Nazari", "Nazir", "Neal", "Nedd", "Needham", "Neely", "Neeson", "Negi", "Negrete", "Negus", "Nejad", "Nelson", "Nelsen", "Nembhard", "Nesbit", "Nesbitt", "Ness", "Newell", "Newman", "Ng", "Ngugi", "Nguyen", "Nichols", "Nicholson", "Nickerson", "Nieves", "Nightingale", "Nihal", "Nika", "Niles", "Nimako", "Nimrod", "Nishida", "Nixon", "Noah", "Noel", "Noh", "Nolan", "Noriega", "Norman", "Norris", "Norwood", "Norton", "Nouri", "Novak", "Nowak", "Nsimba", "Nsubuga", "Nunez", "Nunn",
+
+        "O'Brien", "O'Connell", "O'Connor", "O'Dell", "Obasi", "Obeng", "Obinna", "Obiora", "Obrador", "Ocampo", "Ochieng", "Ochoa", "Odhiambo", "Ofori", "Ogawa", "Ogbonna", "Ogunleye", "Oh", "Okafor", "Okamoto", "Okano", "Okeke", "Okello", "Okonkwo", "Okoro", "Okoye", "Ola", "Olajuwon", "Olamide", "Oliva", "Oliveira", "Olofin", "Olson", "Olumide", "Omar", "Omidyar", "Omotayo", "Oneal", "Onuoha", "Ooi", "Opoku", "Ordonez", "Orji", "Ortega", "Ortiz", "Osagie", "Osakwe", "Osborne", "Osorio", "Osuna", "Othman", "Ouedraogo", "Ouimet", "Ouma", "Oviedo", "Owens", "Oxford", "Owolabi", "Oyekan",
+
+        "Pace", "Pacheco", "Padilla", "Page", "Palmer", "Park", "Parker", "Parks", "Parr", "Parrish", "Parsons", "Pate", "Patel", "Patrick", "Patterson", "Patton", "Paul", "Payne", "Pearson", "Peck", "Pena", "Pennington", "Peoples", "Peralta", "Perdomo", "Perez", "Perkins", "Perry", "Peters", "Peterson", "Petty", "Phelps", "Phillips", "Pickens", "Pierce", "Pineda", "Pittman", "Pitts", "Pollard", "Poole", "Pope", "Porter", "Potter", "Potts", "Powell", "Power", "Powers", "Pratt", "Preston", "Price", "Prince", "Proctor", "Pruitt",
+
+        "Qabool", "Qadir", "Qadri", "Qahtani", "Qamar", "Qamaruddin", "Qandil", "Qassem", "Qasimi", "Qasim", "Qatami", "Qazi", "Qayyum", "Qaziyev", "Qian", "Qiao", "Qin", "Qiu", "Qiyam", "Qobadi", "Qorchi", "Qorban", "Qosimov", "Qudrat", "Quadri", "Qualls", "Quan", "Quang", "Quartey", "Quashie", "Quazi", "Queiroz", "Quentin", "Queen", "Quek", "Quevedo", "Quezada", "Quddus", "Quenneville", "Quiboloy", "Quick", "Quigg", "Quigley", "Quijada", "Quiles", "Quillian", "Quimby", "Quinlan", "Quinn", "Quintero",
+
+        "Rafael", "Raghib", "Rahbar", "Rahim", "Rahimi", "Rahman", "Rai", "Raj", "Rajendran", "Rajput", "Ram", "Ramirez", "Ramos", "Rana", "Randhawa", "Rao", "Rashid", "Rathore", "Ray", "Rayamajhi", "Reed", "Reese", "Reeves", "Reid", "Reilly", "Reinhardt", "Reis", "Rendon", "Renteria", "Reynolds", "Rhodes", "Rice", "Rich", "Richard", "Richards", "Richardson", "Richey", "Richmond", "Riddle", "Riggs", "Riley", "Rios", "Ritchie", "Rivera", "Rivers", "Roach", "Robbins", "Roberson", "Roberts", "Robertson", "Robinson", "Robles", "Rocha", "Rodgers", "Rodriguez", "Rogers", "Rojas", "Rollins", "Roman", "Romero", "Romo", "Rosa", "Rosales", "Rosario", "Rose", "Rosenthal", "Ross", "Roth", "Rouse", "Rowe", "Rowland", "Roy", "Ruiz", "Rush", "Russell", "Russo", "Rutledge",
+
+        "Saad", "Sachdev", "Sadat", "Sadik", "Saeed", "Safi", "Sagar", "Sahara", "Said", "Saidu", "Salas", "Salazar", "Salem", "Salim", "Salinas", "Salisu", "Sampson", "Samuels", "Sanchez", "Sanford", "Santana", "Santiago", "Santos", "Sargent", "Sarraf", "Saunders", "Savage", "Sawyer", "Schaefer", "Schmidt", "Schneider", "Schroeder", "Schultz", "Schwartz", "Scott", "Sears", "Sellers", "Serrano", "Sexton", "Shaffer", "Shah", "Shakur", "Sharif", "Sharp", "Sharpe", "Sharma", "Shaw", "Shelton", "Shepard", "Shepherd", "Sheppard", "Sherman", "Shields", "Short", "Silva", "Simmons", "Simon", "Simpson", "Sims", "Singleton", "Singh", "Skinner", "Slater", "Sloan", "Small", "Smith", "Snider", "Snow", "Snyder", "Solis", "Solomon", "Sosa", "Sparks", "Spears", "Spence", "Spencer", "Stafford", "Stanley", "Stanton", "Stark", "Steele", "Stein", "Stephens", "Stephenson", "Sterling", "Stevens", "Stevenson", "Stewart", "Stokes", "Stone", "Stout", "Strickland", "Strong", "Stuart", "Suarez", "Sullivan", "Summers", "Sundar", "Sutton", "Swanson", "Sweeney", "Sweet",
+
+        "Tabassum", "Tadeo", "Tahir", "Tai", "Takahashi", "Takano", "Takeda", "Takeuchi", "Talbot", "Talley", "Tanner", "Tariq", "Tate", "Taylor", "Terrell", "Terry", "Thakur", "Thompson", "Thomson", "Thornton", "Tillman", "Todd", "Toledo", "Torres", "Townsend", "Tracy", "Tran", "Travis", "Trevino", "Trinh", "Trujillo", "Tucker", "Turner", "Tyler",
+
+        "Uba", "Ubaldo", "Ubani", "Ubong", "Ucar", "Uddin", "Ueda", "Ugalde", "Ugwueze", "Ujah", "Ujir", "Ukachukwu", "Ukariwe", "Ukwuoma", "Ulema", "Ullah", "Ulloa", "Ulrich", "Ulshafer", "Uludag", "Umar", "Umari", "Umeadi", "Umeh", "Umemoto", "Umer", "Umezawa", "Umezuruike", "Umezuruoike", "Umezie", "Umi", "Umoren", "Umphlett", "Umstead", "Umunna", "Umunnakwe", "Umunnaobi", "Umunnakwe", "Umunnakwechi", "Umunnazuike", "Umunnakweme", "Umunnakwelu", "Umunnakwem", "Umunnakwemechi", "Umutesi", "Umwizerwa", "Unanka", "Unoma", "Uno",
+
+        "Vadlamani", "Vaidya", "Vajda", "Valdez", "Valencia", "Valentin", "Valenzuela", "Vance", "Vang", "Varela", "Vargas", "Varma", "Vasquez", "Vaughan", "Vaughn", "Vega", "Velasco", "Velasquez", "Velez", "Venable", "Vera", "Vernon", "Victor", "Vicente", "Vidal", "Vieira", "Vijayan", "Villar", "Villalobos", "Villanueva", "Villarreal", "Vinay", "Vincent", "Vinson", "Virani", "Viswanathan", "Vogel", "Vo", "Vong", "Voss", "Vu",
+
+        "Wade", "Wagner", "Wahid", "Wainwright", "Walker", "Wall", "Wallace", "Waller", "Walls", "Walsh", "Walter", "Walters", "Walton", "Wang", "Ward", "Ware", "Warner", "Warren", "Washington", "Waters", "Watkins", "Watson", "Watts", "Weaver", "Webb", "Weber", "Webster", "Weeks", "Weir", "Weiss", "Welch", "Wells", "West", "Weston", "Wheeler", "Whitaker", "White", "Whitehead", "Whitfield", "Whitley", "Whitney", "Wiggins", "Wilcox", "Wilder", "Wiley", "Wilkerson", "Wilkins", "Wilkinson", "William", "Williams", "Williamson", "Willis", "Wilson", "Winters", "Wise", "Witt", "Wolf", "Wolfe", "Wong", "Wood", "Woodard", "Woods", "Woodward", "Wooten", "Workman", "Wright", "Wu", "Wyatt", "Wynter",
+
+        "Xaba", "Xalxo", "Xandri", "Xanthopoulos", "Xará", "Xavi", "Xela", "Xenos", "Xenou", "Xerri", "Xhaferi", "Xhakaj", "Xhafa", "Xheneti", "Xherro", "Xhezo", "Xhoja", "Xia", "Xiang", "Xie", "Ximénez", "Xin", "Xing", "Xiong", "Xiongpo", "Xitavhudzi", "Xoese", "Xoliswa", "Xolobe", "Xolwana", "Xoriyo", "Xosa", "Xristos", "Xu", "Xuan", "Xue", "Xulu", "Xuma", "Xun", "Xuqing", "Xuxa", "Xydakis", "Xydis", "Xynopoulos", "Xyrakis", "Xystros", "Xzavion", "Xzavier", "Xzibit",
+
+        "Ya", "Yacine", "Yamada", "Yamamoto", "Yamani", "Yamashita", "Yan", "Yang", "Yannick", "Yao", "Yared", "Yasin", "Yates", "Yazdi", "Ye", "Yeh", "Yeoh", "Yeung", "Yi", "Yildiz", "Yilmaz", "Yim", "Yin", "Yip", "Yohannes", "Yoshida", "Yoshimoto", "You", "Young", "Youssef", "Yu", "Yuan", "Yue", "Yuen", "Yusuf",
+
+        "Zafar", "Zahra", "Zaki", "Zambrano", "Zan", "Zandile", "Zang", "Zanzi", "Zapata", "Zarif", "Zavala", "Zayed", "Zayyan", "Zebari", "Zedan", "Zehra", "Zeleke", "Zeman", "Zeng", "Zhang", "Zhao", "Zhou", "Zhu", "Zhuang", "Zia", "Zidan", "Ziegler", "Zikri", "Zimba", "Zin", "Zola", "Zou", "Zubair", "Zuniga", "Zuberi", "Zubkov", "Zubrin", "Zucker", "Zuehlke", "Zugic", "Zuhur", "Zunairah", "Zunza", "Zuri", "Zurita", "Zvonarev", "Zweifel", "Zwick", "Zwilling", "Zyad", "Zylstra"
+
+    };
+
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            // Optionally persist this manager between scenes.
+            // DontDestroyOnLoad(gameObject);
+        }
+        else
         {
             Destroy(gameObject);
-            return;
         }
-        Instance = this;
     }
 
     /// <summary>
-    /// Registers an NPC with the manager.
-    /// This should be called when NPCs are spawned.
+    /// Registers an NPC with the NPCManager.
     /// </summary>
     public void RegisterNPC(NPC npc)
     {
-        if (!npcs.Contains(npc))
+        if (npc != null && !npcs.Contains(npc))
+        {
             npcs.Add(npc);
+        }
     }
 
     /// <summary>
@@ -221,31 +207,8 @@ public class NPCManager : MonoBehaviour
     /// </summary>
     public List<NPC> GetAllNPCs()
     {
+        Debug.Log("NPCManager: Found " + npcs.Count + " NPCs in the list.");
         return npcs;
     }
 
-    /// <summary>
-    /// Broadcasts an event to all registered NPCs.
-    /// Each NPC’s TriggerEvent method is called so that its MemorySystem records the event.
-    /// </summary>
-    public void TriggerEventForNPCs(GameEventData eventData)
-    {
-        foreach (NPC npc in npcs)
-        {
-            npc.TriggerEvent(eventData);
-            OnNPCEvent?.Invoke(npc, eventData);
-        }
-    }
-
-    /// <summary>
-    /// Sends an event to a specific NPC.
-    /// </summary>
-    public void TriggerEventForNPC(NPC npc, GameEventData eventData)
-    {
-        if (npc != null)
-        {
-            npc.TriggerEvent(eventData);
-            OnNPCEvent?.Invoke(npc, eventData);
-        }
-    }
 }

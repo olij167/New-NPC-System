@@ -1,42 +1,49 @@
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class PerceptionSystem : MonoBehaviour
 {
-    [Header("Vision Settings")]
-    [Tooltip("Maximum distance the NPC can see.")]
-    public float viewDistance = 15f;
-    [Tooltip("Field of view in degrees (e.g., 90 means 45° to each side).")]
-    public float fieldOfView = 90f;
-    [Tooltip("Layer mask for objects visible by sight.")]
-    public LayerMask visionMask;
-    [Tooltip("Multiplier for the NPC's sight sensitivity.")]
+    [Header("Perception Settings")]
+    [Tooltip("Strength of sight. Set in the Inspector or inherited via genetics.")]
     public float sightStrength = 1.0f;
-
-    [Header("Audio Settings")]
-    [Tooltip("Maximum distance the NPC can hear.")]
-    public float hearingRadius = 20f;
-    [Tooltip("Layer mask for objects that emit sound.")]
-    public LayerMask audioMask;
-    [Tooltip("Multiplier for the NPC's hearing sensitivity.")]
+    [Tooltip("Strength of hearing. Set in the Inspector or inherited via genetics.")]
     public float hearingStrength = 1.0f;
 
-    [Header("Perceived Objects")]
-    [Tooltip("List of objects currently visible.")]
-    public List<GameObject> visibleObjects = new List<GameObject>();
-    [Tooltip("List of objects currently audible.")]
+    [Header("Vision Settings")]
+    [Tooltip("Maximum distance for vision.")]
+    public float viewDistance = 30f;
+    [Tooltip("Field of view angle (in degrees).")]
+    public float fieldOfView = 90f;
+    [Tooltip("Layer mask for vision.")]
+    public LayerMask visionMask;
+    [Tooltip("List of objects currently perceived by vision.")]
+    public List<GameObject> perceivedObjects = new List<GameObject>();
+
+    [Header("Audio Settings")]
+    [Tooltip("Maximum hearing radius.")]
+    public float hearingRadius = 20f;
+    [Tooltip("Layer mask for audio sources.")]
+    public LayerMask audioMask;
+    [Tooltip("List of objects currently perceived by audio.")]
     public List<GameObject> audibleObjects = new List<GameObject>();
 
     /// <summary>
-    /// A property that returns all perceived objects (visible and audible) as a combined list.
+    /// Initializes the perception system. If the NPC has parental data, inherited perception strengths from genetics are used; otherwise, values are randomized.
     /// </summary>
-    public List<GameObject> perceivedObjects
+    public void InitializePerception()
     {
-        get
+        NPCFamilyManager fm = GetComponent<NPCFamilyManager>();
+        NPCGenetics genetics = GetComponent<NPCGenetics>();
+
+        if (fm != null && fm.parents != null && fm.parents.Count > 0 && genetics != null)
         {
-            HashSet<GameObject> union = new HashSet<GameObject>(visibleObjects);
-            union.UnionWith(audibleObjects);
-            return new List<GameObject>(union);
+            sightStrength = genetics.sightMultiplier;
+            hearingStrength = genetics.hearingMultiplier;
+        }
+        else
+        {
+            sightStrength = Random.Range(0.8f, 1.2f);
+            hearingStrength = Random.Range(0.8f, 1.2f);
         }
     }
 
@@ -47,11 +54,12 @@ public class PerceptionSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// Updates the list of visible objects using a sphere overlap and a vision cone with occlusion checks.
+    /// Updates the list of visible objects using a sphere overlap, a vision cone, and an occlusion check.
     /// </summary>
     void UpdateVision()
     {
-        visibleObjects.Clear();
+        // Clear the list of perceived objects.
+        perceivedObjects.Clear();
         Collider[] colliders = Physics.OverlapSphere(transform.position, viewDistance, visionMask);
         foreach (Collider col in colliders)
         {
@@ -62,15 +70,13 @@ public class PerceptionSystem : MonoBehaviour
             float angle = Vector3.Angle(transform.forward, directionToObj);
             if (angle < fieldOfView * 0.5f)
             {
-                // Optional occlusion check.
+                // Perform an occlusion check.
                 Ray ray = new Ray(transform.position, col.transform.position - transform.position);
                 RaycastHit hit;
                 if (Physics.Raycast(ray, out hit, viewDistance, visionMask))
                 {
                     if (hit.collider.gameObject == col.gameObject)
-                    {
-                        visibleObjects.Add(col.gameObject);
-                    }
+                        perceivedObjects.Add(col.gameObject);
                 }
             }
         }
@@ -128,8 +134,7 @@ public class PerceptionSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// Provides an alias for GetCombinedPerceptionScore.
-    /// This allows legacy code to call GetAttentionScore.
+    /// Alias for GetCombinedPerceptionScore to support legacy code.
     /// </summary>
     public float GetAttentionScore(GameObject obj)
     {
@@ -141,8 +146,17 @@ public class PerceptionSystem : MonoBehaviour
     /// </summary>
     public List<GameObject> GetPrioritizedPerceivedObjects()
     {
-        List<GameObject> combinedList = perceivedObjects;
-        combinedList.Sort((a, b) => GetCombinedPerceptionScore(b).CompareTo(GetCombinedPerceptionScore(a)));
-        return combinedList;
+        List<GameObject> sortedList = new List<GameObject>(perceivedObjects);
+        sortedList.Sort((a, b) => GetCombinedPerceptionScore(b).CompareTo(GetCombinedPerceptionScore(a)));
+        return sortedList;
     }
+
+    // Debug visualization: Draw vision range (yellow) and hearing radius (cyan).
+    //void OnDrawGizmos()
+    //{
+    //    Gizmos.color = Color.yellow;
+    //    Gizmos.DrawWireSphere(transform.position, viewDistance);
+    //    Gizmos.color = Color.cyan;
+    //    Gizmos.DrawWireSphere(transform.position, hearingRadius);
+    //}
 }

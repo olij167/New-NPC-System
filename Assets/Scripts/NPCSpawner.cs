@@ -1,178 +1,170 @@
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class NPCSpawner : MonoBehaviour
 {
     [Header("Spawn Settings")]
-    public GameObject npcPrefab;            // Prefab including NPC, NPCIdentity, Personality, Sexuality, and RelationshipSystem.
-    public Transform spawnParent;           // Optional parent transform.
-    public Vector3 spawnAreaCenter;         // Center of the spawn area.
-    public Vector3 spawnAreaSize;           // Size of the spawn area.
+    public GameObject npcPrefab;
+    public Transform spawnParent;
+    public Vector3 spawnAreaCenter;
+    public Vector3 spawnAreaSize;
 
-    [Header("Compatibility Weights")]
-    [Range(0f, 1f)]
-    public float opinionWeight = 0.7f;      // (Handled by RelationshipSystem.)
-    [Range(0f, 1f)]
-    public float sexualWeight = 0.3f;       // (Handled by RelationshipSystem.)
+    [Header("Family Generation Defaults")]
+    public int childrenPerCouple = 3;
+    public int descendantGenerations = 3;
 
-    // Spawns a single NPC.
+    public Faction defaultCommunityFaction;
+
+    /// <summary>
+    /// Spawns a generic NPC at a random position.
+    /// </summary>
     public NPC SpawnNPC()
     {
         Vector3 spawnPos = spawnAreaCenter + new Vector3(
-            Random.Range(-spawnAreaSize.x / 2, spawnAreaSize.x / 2),
-            Random.Range(-spawnAreaSize.y / 2, spawnAreaSize.y / 2),
-            Random.Range(-spawnAreaSize.z / 2, spawnAreaSize.z / 2)
+            Random.Range(-spawnAreaSize.x / 2f, spawnAreaSize.x / 2f),
+            Random.Range(-spawnAreaSize.y / 2f, spawnAreaSize.y / 2f),
+            Random.Range(-spawnAreaSize.z / 2f, spawnAreaSize.z / 2f)
         );
-
         GameObject npcObj = Instantiate(npcPrefab, spawnPos, Quaternion.identity, spawnParent);
         NPC npc = npcObj.GetComponent<NPC>();
-
-        // Generate identity and set GameObject's name.
-        NPCIdentity identity = npc.GetComponent<NPCIdentity>();
-        if (identity != null)
+        if (npc != null)
         {
-            identity.GenerateIdentity();
-            npcObj.name = identity.npcName;
-        }
+            // Ensure NPC is registered in the NPCManager
+            NPCManager.Instance.RegisterNPC(npc);
 
-        FormRelationships(npc);
+            NPCIdentity identity = npc.GetComponent<NPCIdentity>();
+            if (identity != null)
+            {
+                identity.GenerateIdentity();
+                npcObj.name = identity.npcName;
+            }
+        }
         return npc;
     }
 
-    // Spawns a family with proper relationships.
-    // If count == 1: Spawns one NPC.
-    // If count == 2: Spawns two NPCs as spouses.
-    // If count >= 3: Spawns two parents and (count - 2) children, linking parents, children, and siblings.
-    public List<NPC> SpawnFamily(int count)
+    /// <summary>
+    /// Spawns a family tree starting with a root couple and their descendants.
+    /// Every spawned NPC is registered with the NPCManager.
+    /// </summary>
+    public List<NPC> SpawnFamilyTree(int familySize, int generations)
     {
-        List<NPC> familyMembers = new List<NPC>();
+        List<NPC> allNPCs = new List<NPC>();
 
-        if (count <= 1)
+        // Spawn root couple.
+        NPC root1 = SpawnNPC();
+        NPC root2 = SpawnNPC();
+        allNPCs.Add(root1);
+        allNPCs.Add(root2);
+        Debug.Log("[NPCSpawner] Spawned root couple: " + root1.identity.npcName + " & " + root2.identity.npcName);
+
+        // Use the root couple as the starting generation.
+        List<NPC> currentGeneration = new List<NPC> { root1, root2 };
+
+        // Spawn descendant generations.
+        for (int gen = 1; gen <= generations; gen++)
         {
-            familyMembers.Add(SpawnNPC());
-            return familyMembers;
-        }
-
-        // Determine a family center.
-        Vector3 familyCenter = spawnAreaCenter + new Vector3(
-            Random.Range(-spawnAreaSize.x / 2, spawnAreaSize.x / 2),
-            Random.Range(-spawnAreaSize.y / 2, spawnAreaSize.y / 2),
-            Random.Range(-spawnAreaSize.z / 2, spawnAreaSize.z / 2)
-        );
-
-        // Select a shared last name for this family.
-        string familyLastName = "Family";
-        if (NPCManager.Instance != null && NPCManager.Instance.lastNames.Count > 0)
-        {
-            familyLastName = NPCManager.Instance.lastNames[Random.Range(0, NPCManager.Instance.lastNames.Count)];
-        }
-
-        if (count == 2)
-        {
-            // Spawn two NPCs and set as spouses.
-            for (int i = 0; i < 2; i++)
+            List<NPC> generationChildren = new List<NPC>();
+            // Process current generation in couples.
+            for (int i = 0; i < currentGeneration.Count; i += 2)
             {
-                Vector3 offset = Random.insideUnitSphere * 2f;
-                GameObject npcObj = Instantiate(npcPrefab, familyCenter + offset, Quaternion.identity, spawnParent);
-                NPC npc = npcObj.GetComponent<NPC>();
-
-                NPCIdentity identity = npc.GetComponent<NPCIdentity>();
-                if (identity != null)
+                if (i + 1 >= currentGeneration.Count)
+                    break;
+                NPC parentA = currentGeneration[i];
+                NPC parentB = currentGeneration[i + 1];
+                // Spawn children for this couple.
+                for (int c = 0; c < familySize; c++)
                 {
-                    // Assign the shared last name before generating identity.
-                    identity.lastName = familyLastName;
-                    identity.GenerateIdentity();
-                    npcObj.name = identity.npcName;
-                }
-                familyMembers.Add(npc);
-            }
-            NPCIdentity identityA = familyMembers[0].GetComponent<NPCIdentity>();
-            NPCIdentity identityB = familyMembers[1].GetComponent<NPCIdentity>();
-            identityA.SetSpouse(identityB);
-        }
-        else // count >= 3
-        {
-            // Spawn 2 parents.
-            List<NPC> parents = new List<NPC>();
-            for (int i = 0; i < 2; i++)
-            {
-                Vector3 offset = Random.insideUnitSphere * 2f;
-                GameObject npcObj = Instantiate(npcPrefab, familyCenter + offset, Quaternion.identity, spawnParent);
-                NPC npc = npcObj.GetComponent<NPC>();
-
-                NPCIdentity identity = npc.GetComponent<NPCIdentity>();
-                if (identity != null)
-                {
-                    identity.lastName = familyLastName;
-                    identity.GenerateIdentity();
-                    npcObj.name = identity.npcName;
-                }
-                parents.Add(npc);
-                familyMembers.Add(npc);
-            }
-            NPCIdentity parentA = parents[0].GetComponent<NPCIdentity>();
-            NPCIdentity parentB = parents[1].GetComponent<NPCIdentity>();
-            parentA.SetSpouse(parentB);
-
-            // Spawn children.
-            List<NPC> children = new List<NPC>();
-            for (int i = 0; i < count - 2; i++)
-            {
-                Vector3 offset = Random.insideUnitSphere * 2f;
-                GameObject npcObj = Instantiate(npcPrefab, familyCenter + offset, Quaternion.identity, spawnParent);
-                NPC npc = npcObj.GetComponent<NPC>();
-
-                NPCIdentity identity = npc.GetComponent<NPCIdentity>();
-                if (identity != null)
-                {
-                    identity.lastName = familyLastName;
-                    identity.GenerateIdentity();
-                    npcObj.name = identity.npcName;
-                }
-                children.Add(npc);
-                familyMembers.Add(npc);
-            }
-
-            // Establish parent–child and sibling relationships.
-            foreach (NPC child in children)
-            {
-                NPCIdentity childIdentity = child.GetComponent<NPCIdentity>();
-                foreach (NPC parent in parents)
-                {
-                    NPCIdentity parentIdentity = parent.GetComponent<NPCIdentity>();
-                    parentIdentity.AddChild(childIdentity);
+                    NPC child = SpawnChildNPC(parentA, parentB);
+                    if (child != null)
+                        generationChildren.Add(child);
                 }
             }
-            for (int i = 0; i < children.Count; i++)
-            {
-                NPCIdentity childA = children[i].GetComponent<NPCIdentity>();
-                for (int j = i + 1; j < children.Count; j++)
-                {
-                    NPCIdentity childB = children[j].GetComponent<NPCIdentity>();
-                    childA.AddSibling(childB);
-                }
-            }
+            currentGeneration = generationChildren;
+            allNPCs.AddRange(generationChildren);
+            Debug.Log("[NPCSpawner] Spawned generation " + gen + " with " + generationChildren.Count + " NPCs.");
         }
-
-        // Form relationships with NPCs outside the family.
-        foreach (NPC familyMember in familyMembers)
-        {
-            FormRelationships(familyMember);
-        }
-
-        return familyMembers;
+        return allNPCs;
     }
 
-    // Forms relationships between newNPC and all existing NPCs.
-    void FormRelationships(NPC newNPC)
+    /// <summary>
+    /// Spawns a child NPC based on two parent NPCs.
+    /// </summary>
+    public NPC SpawnChildNPC(NPC parentA, NPC parentB)
     {
-        List<NPC> existingNPCs = NPCManager.Instance.GetAllNPCs();
-        foreach (NPC other in existingNPCs)
+        // Calculate a spawn position roughly between parents with a small random offset.
+        Vector3 midPoint = (parentA.transform.position + parentB.transform.position) / 2f;
+        Vector3 offset = new Vector3(Random.Range(-spawnAreaSize.x / 4f, spawnAreaSize.x / 4f),
+                                     0,
+                                     Random.Range(-spawnAreaSize.z / 4f, spawnAreaSize.z / 4f));
+        Vector3 spawnPos = midPoint + offset;
+
+        GameObject npcObj = Instantiate(npcPrefab, spawnPos, Quaternion.identity, spawnParent);
+        NPC childNPC = npcObj.GetComponent<NPC>();
+        if (childNPC == null)
+            return null;
+
+        // Set child's identity.
+        NPCIdentity identity = childNPC.GetComponent<NPCIdentity>();
+        if (identity != null)
         {
-            if (other != newNPC)
+            identity.firstName = "Child"; // Simple naming; can be enhanced.
+            // For last name, if a parent has a hyphenated name, choose one side randomly.
+            string lastName = "";
+            if (parentA.identity != null && parentB.identity != null)
             {
-                newNPC.relationshipSystem.EvaluateRelationship(other);
+                lastName = (Random.value < 0.5f)
+                           ? GetFirstPart(parentA.identity.lastName)
+                           : GetFirstPart(parentB.identity.lastName);
+            }
+            else
+            {
+                lastName = "Default";
+            }
+            identity.lastName = lastName;
+            identity.npcName = identity.firstName + " " + identity.lastName;
+            npcObj.name = identity.npcName;
+        }
+
+        // Set up family relationships.
+        if (childNPC.familyManager != null)
+        {
+            childNPC.familyManager.parents = new List<NPCIdentity>();
+            if (parentA.identity != null)
+            {
+                childNPC.familyManager.parents.Add(parentA.identity);
+                parentA.familyManager.AddChild(childNPC.identity);
+            }
+            if (parentB.identity != null)
+            {
+                childNPC.familyManager.parents.Add(parentB.identity);
+                parentB.familyManager.AddChild(childNPC.identity);
             }
         }
+
+        // Apply genetic inheritance if present.
+        if (childNPC.npcGenetics != null && parentA.npcGenetics != null && parentB.npcGenetics != null)
+        {
+            NPCGenetics.ApplyGeneticInheritance(childNPC, parentA, parentB);
+        }
+
+        // Initialize subsystems.
+        childNPC.InitializeIdentity();
+
+        // Register the child NPC.
+        NPCManager.Instance.RegisterNPC(childNPC);
+
+        return childNPC;
+    }
+
+    /// <summary>
+    /// Helper method to get the first part of a hyphenated last name.
+    /// If the name is not hyphenated, returns the full name.
+    /// </summary>
+    private string GetFirstPart(string lastName)
+    {
+        if (string.IsNullOrEmpty(lastName))
+            return "";
+        string[] parts = lastName.Split('-');
+        return parts[0];
     }
 }
